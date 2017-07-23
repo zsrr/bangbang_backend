@@ -1,5 +1,22 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
 
+    <context:component-scan base-package="com.stephen.bangbang.dao,com.stephen.bangbang.service,com.stephen.bangbang.config"/>
+
+    <beans profile="production">
+        <jee:jndi-lookup
+                id="jndi-dataSource"
+                jndi-name="/jdbc/bangbang_mysql" resource-ref="true"
+        />
+    </beans>
+
+    <beans profile="test">
+        <jdbc:embedded-database id="h2-dataSource" type="H2" database-name="bangbang">
+            <!--<jdbc:script encoding="gbk" location="classpath:schema.sql"/>-->
+            <!--<jdbc:script encoding="gbk" location="classpath:test-data.sql"/>-->
+        </jdbc:embedded-database>
+    </beans>
 </beans>

@@ -20,8 +20,8 @@ public class LoginController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public User login(@RequestHeader("username") String userName,
-                      @RequestHeader("password") String password) {
+    public User login(@RequestHeader(value = "username") String userName,
+                      @RequestHeader(value = "password") String password) {
         return loginService.login(userName, password);
     }
 }

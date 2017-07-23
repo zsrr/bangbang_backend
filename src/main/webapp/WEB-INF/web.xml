@@ -9,6 +9,11 @@
         <param-value>WEB-INF/applicationContext.xml</param-value>
     </context-param>
 
+    <context-param>
+        <param-name>spring.profiles.default</param-name>
+        <param-value>test</param-value>
+    </context-param>
+
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
@@ -19,10 +24,6 @@
         <init-param>
             <param-name>contextConfigLocation</param-name>
             <param-value>WEB-INF/bangbangServlet.xml</param-value>
-        </init-param>
-        <init-param>
-            <param-name>spring.profiles.default</param-name>
-            <param-value>test</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
