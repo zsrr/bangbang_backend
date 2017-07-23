@@ -43,4 +43,8 @@ public class UserService {
 
         return user;
     }
+
+    public User findUser(String username) {
+        return userDao.findUser(username);
+    }
 }

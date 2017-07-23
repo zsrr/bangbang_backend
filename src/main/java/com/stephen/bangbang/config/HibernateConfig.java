@@ -39,11 +39,13 @@ public class HibernateConfig {
     LocalSessionFactoryBean factoryBean(DataSource dataSource, HibernatePropertiesConfig propertiesConfig) {
         LocalSessionFactoryBean sfb = new LocalSessionFactoryBean();
         sfb.setDataSource(dataSource);
-        //sfb.setPackagesToScan("com.stephen.bangbang.domain");
-        sfb.setConfigLocation(new ClassPathResource("hibernate.cfg.xml"));
+        sfb.setAnnotatedPackages("com.stephen.bangbang.domain");
+        sfb.setPackagesToScan("com.stephen.bangbang.domain");
         Properties properties = new Properties();
-        properties.put("dialect", propertiesConfig.getDialect());
-        properties.put("hbm2ddl.auto", propertiesConfig.hbm2ddl_auto());
+        properties.put("hibernate.dialect", propertiesConfig.getDialect());
+        properties.put("hibernate.hbm2ddl.auto", propertiesConfig.hbm2ddl_auto());
+        properties.put("hibernate.show_sql", "true");
+        properties.put("hibernate.format_sql", "true");
         sfb.setHibernateProperties(properties);
         return sfb;
     }

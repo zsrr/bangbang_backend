@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.TypedQuery;
+import java.util.List;
 
 // 先设置成最严格的，最后再进行优化
 @Repository
@@ -30,7 +31,13 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
     public User findUser(String name) {
         Session session = getCurrentSession();
         TypedQuery<User> userQuery = session.createQuery("select i from User i where i.username = :name").setParameter("name", name);
-        return userQuery.getSingleResult();
+        // 无法理解的api设计
+        userQuery.setMaxResults(1);
+        List<User> userList = userQuery.getResultList();
+        if (userList == null || userList.isEmpty()) {
+            return null;
+        }
+        return userList.get(0);
     }
 
     @Override
@@ -38,15 +45,5 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
         Session session = getCurrentSession();
         User user = new User(name, password);
         session.persist(user);
-    }
-
-    @Override
-    public User login(String name, String password) {
-        Session session = getCurrentSession();
-        TypedQuery<User> userQuery = session.createQuery("select i from User i where i.username = :name").setParameter("name", name);
-        User user = userQuery.getSingleResult();
-        if (user == null || !user.getPassword().equals(password))
-            return null;
-        return user;
     }
 }
