@@ -1,6 +1,8 @@
 package com.stephen.bangbang.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -32,6 +34,7 @@ public class User {
 
     @Column(nullable = false)
     @NotNull
+    @JsonIgnore
     protected String password;
 
     // 先设置这两个
