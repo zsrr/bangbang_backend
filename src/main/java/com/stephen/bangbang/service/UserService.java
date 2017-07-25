@@ -1,5 +1,6 @@
 package com.stephen.bangbang.service;
 
+import com.stephen.bangbang.authorization.TokenManager;
 import com.stephen.bangbang.dao.UserInfoRepository;
 import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.exception.user.DuplicatedUserException;
@@ -12,13 +13,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
     private UserInfoRepository userDao;
+    private TokenManager tokenManager;
 
     @Autowired
-    public UserService(UserInfoRepository userDao) {
+    public UserService(UserInfoRepository userDao, TokenManager tokenManager) {
         this.userDao = userDao;
+        this.tokenManager = tokenManager;
     }
 
-    public void register(String username, String password) {
+    public User register(String username, String password) {
         if (username == null || username.length() < 5 || username.length() > 16 || password == null) {
             throw new UserInfoInvalidException();
         }
@@ -28,11 +31,12 @@ public class UserService {
             throw new DuplicatedUserException();
         }
 
-        userDao.register(username, password);
+        user =  userDao.register(username, password);
+        return user;
     }
 
-    public User getUser(String username, String password) {
-        User user = userDao.findUser(username);
+    public User login(Long id, String password) {
+        User user = userDao.findUser(id);
         if (user == null) {
             throw new UserNotFoundException();
         }
@@ -40,7 +44,15 @@ public class UserService {
         if (!user.getPassword().equals(password)) {
             throw new PasswordIncorrectException();
         }
-
+        tokenManager.createToken(user.getId());
         return user;
+    }
+
+    public void logout(Long id) {
+        tokenManager.deleteToken(id);
+    }
+
+    public TokenManager getTokenManager() {
+        return tokenManager;
     }
 }

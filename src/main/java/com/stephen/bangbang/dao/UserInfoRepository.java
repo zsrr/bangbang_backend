@@ -4,5 +4,6 @@ import com.stephen.bangbang.domain.User;
 
 public interface UserInfoRepository {
     User findUser(String name);
-    void register(String name, String password);
+    User findUser(Long id);
+    User register(String name, String password);
 }

@@ -41,9 +41,23 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
     }
 
     @Override
-    public void register(String name, String password) {
+    public User findUser(Long id) {
+        Session session = getCurrentSession();
+        TypedQuery<User> userQuery = session.createQuery("select i from User i where i.id = :id").setParameter("id", id);
+        // 无法理解的api设计
+        userQuery.setMaxResults(1);
+        List<User> userList = userQuery.getResultList();
+        if (userList == null || userList.isEmpty()) {
+            return null;
+        }
+        return userList.get(0);
+    }
+
+    @Override
+    public User register(String name, String password) {
         Session session = getCurrentSession();
         User user = new User(name, password);
         session.persist(user);
+        return user;
     }
 }

@@ -13,19 +13,31 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<BaseResponse> register(@RequestHeader("username") String username, @RequestHeader("password") String password) {
-        userService.register(username, password);
-        return new ResponseEntity<BaseResponse>(new BaseResponse(HttpStatus.CREATED, null), HttpStatus.CREATED);
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @RequestMapping(value = "/{username}", method = RequestMethod.GET)
-    public ResponseEntity<UserResponse> getUserByUserName(@PathVariable("username") String username, @RequestHeader("password") String password) {
-        User user = userService.getUser(username, password);
-        UserResponse userResponse = new UserResponse(user.getUsername());
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    public ResponseEntity<UserResponse> register(@RequestHeader("username") String username, @RequestHeader("password") String password) {
+        User user = userService.register(username, password);
+        UserResponse userResponse = new UserResponse(user.getId(), user.getUsername(), null);
+        userResponse.setStatus(HttpStatus.CREATED.value());
+        return new ResponseEntity<UserResponse>(userResponse, HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public ResponseEntity<UserResponse> login(@RequestParam("id") String id, @RequestHeader("password") String password) {
+        User user = userService.login(Long.parseLong(id), password);
+        UserResponse userResponse = new UserResponse(user.getId(), user.getUsername(), userService.getTokenManager().getToken(user.getId()).getToken());
         return new ResponseEntity<UserResponse>(userResponse, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/logout", method = RequestMethod.DELETE)
+    public ResponseEntity<BaseResponse> logout(@RequestParam("id") String id) {
+        userService.logout(Long.parseLong(id));
+        return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
     }
 }
