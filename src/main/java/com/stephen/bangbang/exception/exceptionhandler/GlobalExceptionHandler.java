@@ -2,6 +2,7 @@ package com.stephen.bangbang.exception.exceptionhandler;
 
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.ErrorDetail;
+import com.stephen.bangbang.exception.task.TaskNotFoundException;
 import com.stephen.bangbang.exception.user.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,5 +45,12 @@ public class GlobalExceptionHandler {
         ErrorDetail errorDetail = new ErrorDetail("Authorization error", UnAuthorizedException.class, "用户身份验证失败");
         BaseResponse baseResponse = new BaseResponse(HttpStatus.UNAUTHORIZED, errorDetail);
         return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<BaseResponse> taskNotFound() {
+        ErrorDetail errorDetail = new ErrorDetail("Task not found", TaskNotFoundException.class, "未找到此任务");
+        BaseResponse br = new BaseResponse(HttpStatus.NOT_FOUND, errorDetail);
+        return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_FOUND);
     }
 }

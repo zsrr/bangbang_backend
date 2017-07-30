@@ -37,7 +37,6 @@ public class TokenManagerImpl implements TokenManager {
                 return new TokenModel(userId, token);
             }
         });
-        //redisTemplate.boundValueOps(userId).set(token, Constants.TOKEN_EXPIRES_DAYS, TimeUnit.DAYS);
         return tokenModel;
     }
 

@@ -1,22 +1,14 @@
 package com.stephen.bangbang.dto;
 
-public class UserResponse extends BaseResponse {
+import com.stephen.bangbang.domain.User;
+
+public class UserLoginResponse extends BaseResponse {
     Long id;
-    String username;
     String token;
 
-    public UserResponse(Long id, String username, String token) {
-        this.id = id;
-        this.username = username;
+    public UserLoginResponse(User user, String token) {
+        this.id = user.getId();
         this.token = token;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getToken() {

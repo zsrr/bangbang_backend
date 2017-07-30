@@ -1,7 +1,10 @@
 package com.stephen.bangbang.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ErrorDetail {
     String title;
+    @JsonProperty("error_class_name")
     String errorClassName;
     String description;
 

@@ -14,17 +14,11 @@ import java.util.List;
 // 先设置成最严格的，最后再进行优化
 @Repository
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class UserInfoRepositoryImpl implements UserInfoRepository {
-
-    private SessionFactory sessionFactory;
+public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserInfoRepository {
 
     @Inject
     public UserInfoRepositoryImpl(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-
-    private Session getCurrentSession() {
-        return sessionFactory.getCurrentSession();
+        super(sessionFactory);
     }
 
     @Override

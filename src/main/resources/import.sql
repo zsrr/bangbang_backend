@@ -1,0 +1,1 @@
+INSERT INTO USERS VALUE ('zsrrr', '123456');

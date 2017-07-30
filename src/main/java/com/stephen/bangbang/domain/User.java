@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "USERS",
@@ -37,6 +39,10 @@ public class User {
     @JsonIgnore
     protected String password;
 
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @org.hibernate.annotations.OrderBy(clause = "id desc")
+    protected Set<HelpingTask> tasks = new LinkedHashSet<>();
+
     // 先设置这两个
 
     public Long getId() {
@@ -49,5 +55,9 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    public Set<HelpingTask> getTasks() {
+        return tasks;
     }
 }
