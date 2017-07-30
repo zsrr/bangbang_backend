@@ -69,20 +69,4 @@ public class UserServiceImpl implements UserService {
     public TokenManager getTokenManager() {
         return tokenManager;
     }
-
-    @Override
-    public void invalidUser(Long userId) {
-        User user = userDao.findUser(userId);
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
-    }
-
-    @Override
-    public void invalidUser(String username) {
-        User user = userDao.findUser(username);
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
-    }
 }

@@ -15,8 +15,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicatedUserException.class)
     public ResponseEntity<BaseResponse> duplicatedUser() {
         ErrorDetail errorDetail = new ErrorDetail("Duplicated user", DuplicatedUserException.class, "用户名已被使用");
-        BaseResponse baseResponse = new BaseResponse(HttpStatus.BAD_REQUEST, errorDetail);
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.BAD_REQUEST);
+        BaseResponse baseResponse = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, errorDetail);
+        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -29,15 +29,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserInfoInvalidException.class)
     public ResponseEntity<BaseResponse> userInfoInvalid() {
         ErrorDetail errorDetail = new ErrorDetail("User's information is invalid", UserInfoInvalidException.class, "用户信息不符合标准");
-        BaseResponse baseResponse = new BaseResponse(HttpStatus.BAD_REQUEST, errorDetail);
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.BAD_REQUEST);
+        BaseResponse baseResponse = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, errorDetail);
+        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @ExceptionHandler(PasswordIncorrectException.class)
     public ResponseEntity<BaseResponse> passwordIncorrect() {
         ErrorDetail errorDetail = new ErrorDetail("Password is incorrect", PasswordIncorrectException.class, "用户密码错误");
-        BaseResponse baseResponse = new BaseResponse(HttpStatus.BAD_REQUEST, errorDetail);
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.BAD_REQUEST);
+        BaseResponse baseResponse = new BaseResponse(HttpStatus.UNAUTHORIZED, errorDetail);
+        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(UnAuthorizedException.class)

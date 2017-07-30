@@ -1,6 +1,18 @@
 package com.stephen.bangbang.service;
 
+import com.stephen.bangbang.dao.UserInfoRepository;
+import com.stephen.bangbang.domain.User;
+import com.stephen.bangbang.exception.user.UserNotFoundException;
+
 public interface UserInvalidService {
-    void invalidUser(Long userId);
-    void invalidUser(String username);
+    default void invalidUser(Long userId, UserInfoRepository userDAO) {
+        User user = userDAO.findUser(userId);
+        if (user == null)
+            throw new UserNotFoundException();
+    }
+    default void invalidUser(String username, UserInfoRepository userDAO) {
+        User user = userDAO.findUser(username);
+        if (user == null)
+            throw new UserNotFoundException();
+    }
 }

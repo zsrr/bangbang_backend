@@ -32,6 +32,8 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
         int currentPage;
         if (lastTaskId == 0) {
             currentPage = 1;
+            if (currentPage > totalPage)
+                currentPage = totalPage;
             Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h order by h.id desc").setMaxResults(number);
             List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
@@ -81,7 +83,6 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
     public HelpingTask findTask(Long taskId) {
         Session session = getCurrentSession();
         TypedQuery<HelpingTask> taskQuery = session.createQuery("select i from HelpingTask i where i.id = :id").setParameter("id", taskId);
-        // 无法理解的api设计
         taskQuery.setMaxResults(1);
         List<HelpingTask> taskList = taskQuery.getResultList();
         if (taskList == null || taskList.isEmpty()) {
@@ -92,30 +93,30 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
 
     private int getCurrentPage(Long lastTaskId, int numberPerPage) {
         Session session = getCurrentSession();
-        Query<Integer> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId").setParameter("lastId", lastTaskId);
-        int count = query.getSingleResult() + 1;
-        return countPage(count, numberPerPage);
+        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId").setParameter("lastId", lastTaskId);
+        long count = query.getSingleResult() + 1;
+        return countPage((int) count, numberPerPage);
     }
 
     private int getCurrentPage(Long userId, Long lastTaskId, int numberPerPage) {
         Session session = getCurrentSession();
-        Query<Integer> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId and h.user.id = :userId").setParameter("lastId", lastTaskId).setParameter("userId", userId);
-        int count = query.getSingleResult() + 1;
-        return countPage(count, numberPerPage);
+        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId and h.user.id = :userId").setParameter("lastId", lastTaskId).setParameter("userId", userId);
+        long count = query.getSingleResult() + 1;
+        return countPage((int) count, numberPerPage);
     }
 
     private int getPageCount(int numberPerPage) {
         Session session = getCurrentSession();
-        Query<Integer> query = session.createQuery("select count(h) from HelpingTask h");
-        int total = query.getSingleResult();
-        return countPage(total, numberPerPage);
+        Query<Long> query = session.createQuery("select count(h) from HelpingTask h");
+        long total = query.getSingleResult();
+        return countPage((int) total, numberPerPage);
     }
 
     private int getPageCount(Long userId, int numberPerPage) {
         Session session = getCurrentSession();
-        Query<Integer> query = session.createQuery("select count(h) from HelpingTask h where h.user.id = :userId").setParameter("userId", userId);
-        int total = query.getSingleResult();
-        return countPage(total, numberPerPage);
+        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user.id = :userId").setParameter("userId", userId);
+        long total = query.getSingleResult();
+        return countPage((int) total, numberPerPage);
     }
 
     private int countPage(int total, int numberPerPage) {

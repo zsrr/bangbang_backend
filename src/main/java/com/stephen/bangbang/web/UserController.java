@@ -6,7 +6,6 @@ import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.UserLoginResponse;
 import com.stephen.bangbang.dto.UserRegisterResponse;
-import com.stephen.bangbang.exception.user.UserInfoInvalidException;
 import com.stephen.bangbang.service.UserService;
 import com.stephen.bangbang.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    @RequestMapping(value = "/", method = RequestMethod.POST)
     public ResponseEntity<UserRegisterResponse> register(@RequestHeader("username") String username, @RequestHeader("password") String password) {
         User user = userService.register(username, password);
         UserRegisterResponse userRegisterResponse = new UserRegisterResponse(user.getId());
@@ -33,27 +32,23 @@ public class UserController {
         return new ResponseEntity<UserRegisterResponse>(userRegisterResponse, HttpStatus.CREATED);
     }
 
-    // 两种登录方式
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public ResponseEntity<UserLoginResponse> login(@RequestParam(value = "id", required = false) String id, @RequestParam(value = "username", required = false) String username, @RequestHeader("password") String password) {
-        User user = null;
-        if (id != null) {
-            user = userService.login(Long.parseLong(id), password);
-        } else if (username != null) {
-            user = userService.login(username, password);
-        } else {
-            throw new UserInfoInvalidException();
+    @RequestMapping(value = "/{userIdentifier}", method = RequestMethod.GET)
+    public ResponseEntity<UserLoginResponse> login(@PathVariable(value = "userIdentifier") String identifier, @RequestHeader("password") String password) {
+        User user;
+        try {
+            Long id = Long.parseLong(identifier);
+            user = userService.login(id, password);
+        } catch (NumberFormatException e) {
+            user = userService.login(identifier, password);
         }
         UserLoginResponse userLoginResponse = new UserLoginResponse(user, ((UserServiceImpl) userService).getTokenManager().getToken(user.getId()).getToken());
         return new ResponseEntity<UserLoginResponse>(userLoginResponse, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/logout", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/", method = RequestMethod.DELETE)
     @Authorization
     public ResponseEntity<BaseResponse> logout(@CurrentUser User user) {
         userService.logout(user.getId());
         return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
     }
-
-    // 之后再进行设置
 }
