@@ -6,6 +6,7 @@ import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.UserLoginResponse;
 import com.stephen.bangbang.dto.UserRegisterResponse;
+import com.stephen.bangbang.exception.user.NotCurrentUserException;
 import com.stephen.bangbang.service.UserService;
 import com.stephen.bangbang.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +46,12 @@ public class UserController {
         return new ResponseEntity<UserLoginResponse>(userLoginResponse, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
     @Authorization
-    public ResponseEntity<BaseResponse> logout(@CurrentUser User user) {
+    public ResponseEntity<BaseResponse> logout(@PathVariable("userId") Long userId, @CurrentUser User user) {
+        if (!user.getId().equals(userId)) {
+            throw new NotCurrentUserException();
+        }
         userService.logout(user.getId());
         return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
     }

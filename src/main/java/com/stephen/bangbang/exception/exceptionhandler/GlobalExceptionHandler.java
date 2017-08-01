@@ -53,4 +53,11 @@ public class GlobalExceptionHandler {
         BaseResponse br = new BaseResponse(HttpStatus.NOT_FOUND, errorDetail);
         return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(NotCurrentUserException.class)
+    public ResponseEntity<BaseResponse> notCurrentUser() {
+        ErrorDetail ed = new ErrorDetail("Not current user", NotCurrentUserException.class, "非传递的Token对应的用户");
+        BaseResponse br = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
+        return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_ACCEPTABLE);
+    }
 }
