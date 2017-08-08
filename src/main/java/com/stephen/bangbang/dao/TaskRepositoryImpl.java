@@ -74,8 +74,9 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
     @Override
     public void publish(Long userId, HelpingTask helpingTask) {
         Session session = getCurrentSession();
-        User user = session.getReference(User.class, userId);
-        user.getTasks().add(helpingTask);
+        User userRef = session.getReference(User.class, userId);
+        helpingTask.setUser(userRef);
+        session.persist(helpingTask);
         session.flush();
     }
 

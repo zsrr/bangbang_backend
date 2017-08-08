@@ -2,12 +2,15 @@ package com.stephen.bangbang.exception.exceptionhandler;
 
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.ErrorDetail;
+import com.stephen.bangbang.exception.task.TaskInfoInvalidException;
 import com.stephen.bangbang.exception.task.TaskNotFoundException;
 import com.stephen.bangbang.exception.user.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import javax.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -57,6 +60,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotCurrentUserException.class)
     public ResponseEntity<BaseResponse> notCurrentUser() {
         ErrorDetail ed = new ErrorDetail("Not current user", NotCurrentUserException.class, "非传递的Token对应的用户");
+        BaseResponse br = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
+        return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_ACCEPTABLE);
+    }
+
+    @ExceptionHandler(TaskInfoInvalidException.class)
+    public ResponseEntity<BaseResponse> taskInfoInvalid() {
+        ErrorDetail ed = new ErrorDetail("Task invalid", TaskInfoInvalidException.class, "任务信息不符合规范");
+        BaseResponse br = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
+        return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_ACCEPTABLE);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<BaseResponse> constraintViolation() {
+        ErrorDetail ed = new ErrorDetail("Constraint not met", ConstraintViolationException.class, "数据不符合规范");
         BaseResponse br = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
         return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_ACCEPTABLE);
     }

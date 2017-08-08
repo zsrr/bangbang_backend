@@ -1,5 +1,6 @@
 package com.stephen.bangbang.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -15,7 +16,6 @@ public class HelpingTask {
 
     @ManyToOne
     @JoinColumn(name = "USER_ID", nullable = false)
-    @NotNull
     protected User user;
 
     @Column(nullable = false, length = 30)
@@ -32,17 +32,21 @@ public class HelpingTask {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     @NotNull
+    @JsonProperty("start_time")
     protected Date startTime;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     @NotNull
+    @JsonProperty("end_time")
     protected Date endTime;
 
     @Column(nullable = false)
     @NotNull
+    @JsonProperty("min_price")
     protected Integer minPrice;
 
+    @JsonProperty("max_price")
     protected Integer maxPrice;
 
     @Column(nullable = false, length = 15)

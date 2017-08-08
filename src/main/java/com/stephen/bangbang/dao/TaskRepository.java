@@ -1,6 +1,7 @@
 package com.stephen.bangbang.dao;
 
 import com.stephen.bangbang.domain.HelpingTask;
+import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.TasksResponse;
 
 // 按照时间从新到旧进行排序，采用搜寻分页，后插入的id较大，采用id作为比较

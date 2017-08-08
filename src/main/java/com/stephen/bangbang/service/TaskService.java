@@ -1,6 +1,7 @@
 package com.stephen.bangbang.service;
 
 import com.stephen.bangbang.domain.HelpingTask;
+import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.TasksResponse;
 
 public interface TaskService extends TaskInvalidService, UserInvalidService {
