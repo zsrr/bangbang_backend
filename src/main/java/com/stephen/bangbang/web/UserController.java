@@ -20,7 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import javax.validation.*;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -28,18 +29,27 @@ public class UserController {
 
     private final UserService userService;
     private final TaskService taskService;
+    private final ValidatorFactory validatorFactory;
 
     @Autowired
-    public UserController(UserService userService, TaskService taskService) {
+    public UserController(UserService userService, TaskService taskService, ValidatorFactory validatorFactory) {
+        this.validatorFactory = validatorFactory;
         this.userService = userService;
         this.taskService = taskService;
     }
 
     @RequestMapping(value = "", method = RequestMethod.POST)
-    public ResponseEntity<UserRegisterResponse> register(@RequestBody @Valid User postUser, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
+    public ResponseEntity<UserRegisterResponse> register(@RequestBody User postUser) {
+        Validator validator = validatorFactory.getValidator();
+
+        Set<ConstraintViolation<User>> usernameViolations = validator.validateProperty(postUser, "username");
+        Set<ConstraintViolation<User>> passwordViolations = validator.validateProperty(postUser, "password");
+
+        if (!usernameViolations.isEmpty() ||
+                !passwordViolations.isEmpty()) {
             throw new UserInfoInvalidException();
         }
+
         User user = userService.register(postUser.getUsername(), postUser.getPassword());
         UserRegisterResponse userRegisterResponse = new UserRegisterResponse(user.getId());
         userRegisterResponse.setStatus(HttpStatus.CREATED.value());

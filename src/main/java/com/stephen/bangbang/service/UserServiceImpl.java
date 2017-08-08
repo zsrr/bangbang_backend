@@ -7,17 +7,21 @@ import com.stephen.bangbang.exception.user.DuplicatedUserException;
 import com.stephen.bangbang.exception.user.PasswordIncorrectException;
 import com.stephen.bangbang.exception.user.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class UserServiceImpl implements UserService {
     private UserInfoRepository userDao;
     private TokenManager tokenManager;
+    private RedisTemplate<String, Long> redisTemplate;
 
     @Autowired
-    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager) {
+    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager, RedisTemplate<String, Long> redisTemplate) {
         this.userDao = userDao;
         this.tokenManager = tokenManager;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -26,7 +30,8 @@ public class UserServiceImpl implements UserService {
         if (user != null) {
             throw new DuplicatedUserException();
         }
-
+        user = userDao.register(username, password, "User-" + redisTemplate.boundValueOps("user-count").get());
+        redisTemplate.boundValueOps("user-count").increment(1);
         return user;
     }
 

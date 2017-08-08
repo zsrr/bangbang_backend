@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Entity
@@ -20,13 +21,16 @@ public class HelpingTask {
 
     @Column(nullable = false, length = 30)
     @NotNull
+    @Size(max = 30)
     protected String title;
 
     @Column(length = 200)
+    @Size(max = 30)
     protected String details;
 
     @Column(length = 40, nullable = false)
     @NotNull
+    @Size(max = 40)
     protected String location;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -51,9 +55,11 @@ public class HelpingTask {
 
     @Column(nullable = false, length = 15)
     @NotNull
+    @Size(max = 11)
     protected String phone;
 
     @Column(length = 200)
+    @Size(max = 200)
     protected String note;
 
     @Temporal(TemporalType.TIMESTAMP)

@@ -48,9 +48,10 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
     }
 
     @Override
-    public User register(String name, String password) {
+    public User register(String name, String password, String nickname) {
         Session session = getCurrentSession();
         User user = new User(name, password);
+        user.setNickname(nickname);
         session.persist(user);
         return user;
     }

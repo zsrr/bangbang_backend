@@ -1,2 +1,0 @@
-INSERT INTO USERS(id, username, password) VALUES (1, 'StephenZhang', '8C4162FD9D4CBEAF066F7D035F2E5FC9');
-INSERT INTO USERS(id, username, password) VALUES (2, 'StephanieZhang', 'BBFB2B0BD77410D0FEB771C6442D2BF1');
