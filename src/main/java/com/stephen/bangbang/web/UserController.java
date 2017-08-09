@@ -1,5 +1,6 @@
 package com.stephen.bangbang.web;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.stephen.bangbang.authorization.Authorization;
 import com.stephen.bangbang.authorization.CurrentUserId;
 import com.stephen.bangbang.domain.HelpingTask;
@@ -67,6 +68,23 @@ public class UserController {
         }
         UserLoginResponse userLoginResponse = new UserLoginResponse(user, ((UserServiceImpl) userService).getTokenManager().getToken(user.getId()).getToken());
         return new ResponseEntity<UserLoginResponse>(userLoginResponse, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{userId}/baseInfo", method = RequestMethod.GET)
+    @Authorization
+    public ResponseEntity<User> getUserInfo(@PathVariable(value = "userId") Long userId) {
+        User user = userService.getUser(userId);
+        return new ResponseEntity<User>(user, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH)
+    @Authorization
+    public ResponseEntity<BaseResponse> updateUser(@PathVariable("userId") Long userId, @CurrentUserId Long currentUserId, @RequestBody ObjectNode updatedBody) {
+        if (!userId.equals(currentUserId)) {
+            throw new NotCurrentUserException();
+        }
+        userService.update(userId, updatedBody);
+        return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)

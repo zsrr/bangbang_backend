@@ -1,6 +1,7 @@
 package com.stephen.bangbang.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
@@ -82,6 +83,7 @@ public class User {
 
     protected String avatar;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @org.hibernate.annotations.OrderBy(clause = "id desc")
     protected Set<HelpingTask> tasks = new LinkedHashSet<>();
@@ -90,6 +92,10 @@ public class User {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUsername() {

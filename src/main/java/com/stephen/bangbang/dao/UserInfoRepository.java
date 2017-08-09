@@ -6,4 +6,5 @@ public interface UserInfoRepository {
     User findUser(String name);
     User findUser(Long id);
     User register(String name, String password, String nickname);
+    void update(User updatedUser);
 }

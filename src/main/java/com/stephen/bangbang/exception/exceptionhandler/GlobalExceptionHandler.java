@@ -2,6 +2,7 @@ package com.stephen.bangbang.exception.exceptionhandler;
 
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.ErrorDetail;
+import com.stephen.bangbang.exception.JsonInvalidException;
 import com.stephen.bangbang.exception.task.TaskInfoInvalidException;
 import com.stephen.bangbang.exception.task.TaskNotFoundException;
 import com.stephen.bangbang.exception.user.*;
@@ -72,8 +73,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<BaseResponse> constraintViolation() {
-        ErrorDetail ed = new ErrorDetail("Constraint not met", ConstraintViolationException.class, "数据不符合规范");
+    public ResponseEntity<BaseResponse> constraintViolation(ConstraintViolationException exception) {
+        ErrorDetail ed = new ErrorDetail("Constraint not met", ConstraintViolationException.class, exception.getMessage());
+        BaseResponse br = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
+        return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_ACCEPTABLE);
+    }
+
+    @ExceptionHandler(JsonInvalidException.class)
+    public ResponseEntity<BaseResponse> jsonInvalid() {
+        ErrorDetail ed = new ErrorDetail("Json string is invalid", JsonInvalidException.class, "Json字符串不符合规范");
         BaseResponse br = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
         return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_ACCEPTABLE);
     }

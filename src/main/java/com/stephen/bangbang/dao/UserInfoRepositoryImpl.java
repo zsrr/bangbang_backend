@@ -55,4 +55,10 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
         session.persist(user);
         return user;
     }
+
+    @Override
+    public void update(User updatedUser) {
+        Session session = getCurrentSession();
+        session.update(updatedUser);
+    }
 }

@@ -1,5 +1,6 @@
 package com.stephen.bangbang.service;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.stephen.bangbang.domain.User;
 
 public interface UserService {
@@ -10,4 +11,10 @@ public interface UserService {
     User login(String username, String password);
 
     void logout(Long id);
+
+    User getUser(String username);
+
+    User getUser(Long userId);
+
+    void update(Long userId, ObjectNode updatedNode);
 }
