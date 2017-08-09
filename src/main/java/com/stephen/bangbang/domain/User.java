@@ -3,11 +3,13 @@ package com.stephen.bangbang.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -17,7 +19,14 @@ import java.util.Set;
         indexes = @Index(name = "username",
         columnList = "USERNAME",
         unique = true))
-public class User {
+@Cacheable
+@org.hibernate.annotations.Cache(
+        usage = CacheConcurrencyStrategy.READ_WRITE,
+        region = "user"
+)
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public enum Gender {
         MALE,

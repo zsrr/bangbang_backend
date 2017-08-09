@@ -45,6 +45,12 @@ public class HibernateConfig {
         properties.put("hibernate.hbm2ddl.auto", propertiesConfig.hbm2ddl_auto());
         properties.put("hibernate.show_sql", "true");
         properties.put("hibernate.format_sql", "true");
+        properties.put("hibernate.cache.use_second_level_cache", "true");
+        properties.put("hibernate.cache.use_query_cache", "true");
+        properties.put("hibernate.cache.region.factory_class", "net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory");
+        properties.put("net.sf.ehcache.configurationResourceName", "classpath:config/ehcache.xml");
+        properties.put("hibernate.cache.use_structured_entries", "false");
+        properties.put("hibernate.generate_statistics", "true");
         sfb.setHibernateProperties(properties);
         return sfb;
     }

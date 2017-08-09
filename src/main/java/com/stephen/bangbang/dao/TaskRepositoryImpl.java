@@ -20,6 +20,8 @@ import java.util.List;
 @Transactional(isolation = Isolation.SERIALIZABLE)
 public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskRepository {
 
+    private static final String HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
+
     @Inject
     public TaskRepositoryImpl(SessionFactory sessionFactory) {
         super(sessionFactory);
@@ -34,7 +36,7 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
             currentPage = 1;
             if (currentPage > totalPage)
                 currentPage = totalPage;
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h order by h.id desc").setMaxResults(number);
+            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
             List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         } else {
@@ -43,7 +45,7 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
                 currentPage = totalPage;
                 return new TasksResponse(new Pagination(currentPage, totalPage), null);
             }
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId order by h.id desc").setMaxResults(number);
+            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
             List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         }
@@ -56,7 +58,7 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
         int currentPage;
         if (lastTaskId == 0) {
             currentPage = 1;
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number);
+            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
             List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         } else {
@@ -65,7 +67,7 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
                 currentPage = totalPage;
                 return new TasksResponse(new Pagination(currentPage, totalPage), null);
             }
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId and h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number);
+            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId and h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
             List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         }

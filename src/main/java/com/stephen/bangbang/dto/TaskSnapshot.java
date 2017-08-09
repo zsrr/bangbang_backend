@@ -3,7 +3,12 @@ package com.stephen.bangbang.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.stephen.bangbang.domain.HelpingTask;
 
-public class TaskSnapshot {
+import java.io.Serializable;
+
+public class TaskSnapshot implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @JsonProperty("task_id")
     Long taskId;
 
