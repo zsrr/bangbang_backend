@@ -2,6 +2,7 @@ package com.stephen.bangbang.exception.exceptionhandler;
 
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.ErrorDetail;
+import com.stephen.bangbang.exception.JPushException;
 import com.stephen.bangbang.exception.JsonInvalidException;
 import com.stephen.bangbang.exception.task.TaskInfoInvalidException;
 import com.stephen.bangbang.exception.task.TaskNotFoundException;
@@ -84,5 +85,12 @@ public class GlobalExceptionHandler {
         ErrorDetail ed = new ErrorDetail("Json string is invalid", JsonInvalidException.class, "Json字符串不符合规范");
         BaseResponse br = new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
         return new ResponseEntity<BaseResponse>(br, HttpStatus.NOT_ACCEPTABLE);
+    }
+
+    @ExceptionHandler(JPushException.class)
+    public ResponseEntity<BaseResponse> jPushException(JPushException exception) {
+        ErrorDetail ed = new ErrorDetail("JPush exception happened", JPushException.class, exception.getCause().getMessage());
+        BaseResponse br = new BaseResponse(HttpStatus.INTERNAL_SERVER_ERROR, ed);
+        return new ResponseEntity<BaseResponse>(br, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

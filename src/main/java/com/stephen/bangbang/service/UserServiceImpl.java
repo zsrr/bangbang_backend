@@ -1,5 +1,14 @@
 package com.stephen.bangbang.service;
 
+import cn.jiguang.common.resp.APIConnectionException;
+import cn.jiguang.common.resp.APIRequestException;
+import cn.jpush.api.JPushClient;
+import cn.jpush.api.push.model.Platform;
+import cn.jpush.api.push.model.PushPayload;
+import cn.jpush.api.push.model.audience.Audience;
+import cn.jpush.api.push.model.notification.AndroidNotification;
+import cn.jpush.api.push.model.notification.IosNotification;
+import cn.jpush.api.push.model.notification.Notification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.stephen.bangbang.authorization.TokenManager;
 import com.stephen.bangbang.dao.UserInfoRepository;
 import com.stephen.bangbang.domain.User;
+import com.stephen.bangbang.exception.JPushException;
 import com.stephen.bangbang.exception.JsonInvalidException;
 import com.stephen.bangbang.exception.user.DuplicatedUserException;
 import com.stephen.bangbang.exception.user.PasswordIncorrectException;
@@ -24,9 +34,11 @@ public class UserServiceImpl implements UserService {
     private UserInfoRepository userDao;
     private TokenManager tokenManager;
     private RedisTemplate<String, String> redisTemplate;
+    private JPushClient jPushClient;
 
     @Autowired
-    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager, RedisTemplate<String, String> redisTemplate) {
+    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager, RedisTemplate<String, String> redisTemplate, JPushClient jPushClient) {
+        this.jPushClient = jPushClient;
         this.userDao = userDao;
         this.tokenManager = tokenManager;
         this.redisTemplate = redisTemplate;
@@ -46,20 +58,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User login(Long id, String password) {
+    public User login(Long id, String password, String registrationId) {
         User user = userDao.findUser(id);
-        postFindUser(user, password);
+        postFindUser(user, password, registrationId);
         return user;
     }
 
     @Override
-    public User login(String username, String password) {
+    public User login(String username, String password, String registrationId) {
         User user = userDao.findUser(username);
-        postFindUser(user, password);
+        postFindUser(user, password, registrationId);
         return user;
     }
 
-    private void postFindUser(User user, String password) {
+    private void postFindUser(User user, String password, String registrationId) {
         if (user == null) {
             throw new UserNotFoundException();
         }
@@ -68,6 +80,39 @@ public class UserServiceImpl implements UserService {
             throw new PasswordIncorrectException();
         }
         tokenManager.createToken(user.getId());
+        allopatricLogin(user.getId(), registrationId);
+    }
+
+    private void allopatricLogin(Long userId, String registrationId) {
+        BoundValueOperations<String, String> ops = redisTemplate.boundValueOps("" + userId);
+        String formerRegistrationId = ops.get();
+        if (formerRegistrationId == null || formerRegistrationId.equals("")) {
+            ops.set(formerRegistrationId);
+        } else if (!formerRegistrationId.equals(registrationId)) {
+            PushPayload pushPayload = getAllopatricLoginPayload(formerRegistrationId);
+            try {
+                jPushClient.sendPush(pushPayload);
+                ops.set(registrationId);
+            } catch (APIConnectionException | APIRequestException e) {
+                throw new JPushException(e);
+            }
+        }
+    }
+
+    private PushPayload getAllopatricLoginPayload(String destination) {
+        return PushPayload.newBuilder()
+                .setPlatform(Platform.all())
+                .setAudience(Audience.registrationId(destination))
+                .setNotification(Notification.newBuilder()
+                        .setAlert("存在异地登录，请检查账号密码是否被更改")
+                        .addPlatformNotification(
+                                AndroidNotification.newBuilder()
+                                        .setTitle("异地登录").build())
+                        .addPlatformNotification(
+                                IosNotification.newBuilder()
+                                        .incrBadge(1).
+                                        build()).build()).
+                        build();
     }
 
     @Override

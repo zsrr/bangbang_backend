@@ -6,9 +6,9 @@ import com.stephen.bangbang.domain.User;
 public interface UserService {
     User register(String username, String password);
 
-    User login(Long id, String password);
+    User login(Long id, String password, String registrationId);
 
-    User login(String username, String password);
+    User login(String username, String password, String registrationId);
 
     void logout(Long id);
 

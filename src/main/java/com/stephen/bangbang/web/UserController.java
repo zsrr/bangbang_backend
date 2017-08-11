@@ -58,13 +58,13 @@ public class UserController {
     }
 
     @RequestMapping(value = "/{userIdentifier}", method = RequestMethod.GET)
-    public ResponseEntity<UserLoginResponse> login(@PathVariable(value = "userIdentifier") String identifier, @RequestHeader("password") String password) {
+    public ResponseEntity<UserLoginResponse> login(@PathVariable(value = "userIdentifier") String identifier, @RequestHeader("password") String password, @RequestHeader("registrationId") String registrationId) {
         User user;
         try {
             Long id = Long.parseLong(identifier);
-            user = userService.login(id, password);
+            user = userService.login(id, password, registrationId);
         } catch (NumberFormatException e) {
-            user = userService.login(identifier, password);
+            user = userService.login(identifier, password, registrationId);
         }
         UserLoginResponse userLoginResponse = new UserLoginResponse(user, ((UserServiceImpl) userService).getTokenManager().getToken(user.getId()).getToken());
         return new ResponseEntity<UserLoginResponse>(userLoginResponse, HttpStatus.OK);
