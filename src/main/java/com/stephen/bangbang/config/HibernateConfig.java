@@ -1,6 +1,7 @@
 package com.stephen.bangbang.config;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.cache.ehcache.EhCacheRegionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -47,7 +48,7 @@ public class HibernateConfig {
         properties.put("hibernate.format_sql", "true");
         properties.put("hibernate.cache.use_second_level_cache", "true");
         properties.put("hibernate.cache.use_query_cache", "true");
-        properties.put("hibernate.cache.region.factory_class", "net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory");
+        properties.put("hibernate.cache.region.factory_class", EhCacheRegionFactory.class.getName());
         properties.put("net.sf.ehcache.configurationResourceName", "classpath:config/ehcache.xml");
         properties.put("hibernate.cache.use_structured_entries", "false");
         properties.put("hibernate.generate_statistics", "true");

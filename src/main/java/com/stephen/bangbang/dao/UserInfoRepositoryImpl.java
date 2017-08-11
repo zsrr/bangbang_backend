@@ -25,6 +25,7 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
     public User findUser(String name) {
         Session session = getCurrentSession();
         TypedQuery<User> userQuery = session.createQuery("select i from User i where i.username = :name").setParameter("name", name);
+        userQuery.setHint("org.hibernate.cacheable", true);
         // 无法理解的api设计
         userQuery.setMaxResults(1);
         List<User> userList = userQuery.getResultList();
@@ -38,6 +39,7 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
     public User findUser(Long id) {
         Session session = getCurrentSession();
         TypedQuery<User> userQuery = session.createQuery("select i from User i where i.id = :id").setParameter("id", id);
+        userQuery.setHint("org.hibernate.cacheable", true);
         // 无法理解的api设计
         userQuery.setMaxResults(1);
         List<User> userList = userQuery.getResultList();

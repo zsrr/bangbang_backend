@@ -15,6 +15,7 @@ public class CacheConfig {
     public EhCacheManagerFactoryBean ehcache() {
         EhCacheManagerFactoryBean ehcache = new EhCacheManagerFactoryBean();
         ehcache.setConfigLocation(new ClassPathResource("config/ehcache.xml"));
+        ehcache.setCacheManagerName("spring-cache");
         return ehcache;
     }
 
