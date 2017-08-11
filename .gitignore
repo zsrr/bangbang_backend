@@ -2,3 +2,4 @@
 /target/
 BangBangBackend.iml
 transaction.log
+/src/main/resources/config/jpush.properties
