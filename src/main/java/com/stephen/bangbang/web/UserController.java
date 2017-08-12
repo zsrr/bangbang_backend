@@ -30,17 +30,16 @@ public class UserController {
 
     private final UserService userService;
     private final TaskService taskService;
-    private final ValidatorFactory validatorFactory;
 
     @Autowired
-    public UserController(UserService userService, TaskService taskService, ValidatorFactory validatorFactory) {
-        this.validatorFactory = validatorFactory;
+    public UserController(UserService userService, TaskService taskService) {
         this.userService = userService;
         this.taskService = taskService;
     }
 
     @RequestMapping(value = "", method = RequestMethod.POST)
     public ResponseEntity<UserRegisterResponse> register(@RequestBody User postUser) {
+        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         Validator validator = validatorFactory.getValidator();
 
         Set<ConstraintViolation<User>> usernameViolations = validator.validateProperty(postUser, "username");
