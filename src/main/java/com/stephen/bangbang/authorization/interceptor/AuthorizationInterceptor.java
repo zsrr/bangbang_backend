@@ -4,7 +4,7 @@ import com.stephen.bangbang.Constants;
 import com.stephen.bangbang.authorization.Authorization;
 import com.stephen.bangbang.authorization.TokenManager;
 import com.stephen.bangbang.authorization.TokenModel;
-import com.stephen.bangbang.exception.user.UnAuthorizedException;
+import com.stephen.bangbang.exception.UnAuthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;

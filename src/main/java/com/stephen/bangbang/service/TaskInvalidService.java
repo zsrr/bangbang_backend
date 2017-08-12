@@ -2,7 +2,7 @@ package com.stephen.bangbang.service;
 
 import com.stephen.bangbang.dao.TaskRepository;
 import com.stephen.bangbang.domain.HelpingTask;
-import com.stephen.bangbang.exception.task.TaskNotFoundException;
+import com.stephen.bangbang.exception.TaskNotFoundException;
 
 public interface TaskInvalidService {
     default void invalidTask(Long taskId, TaskRepository taskDAO) {

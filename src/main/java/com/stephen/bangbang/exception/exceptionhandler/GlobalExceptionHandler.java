@@ -2,11 +2,7 @@ package com.stephen.bangbang.exception.exceptionhandler;
 
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.ErrorDetail;
-import com.stephen.bangbang.exception.JPushException;
-import com.stephen.bangbang.exception.JsonInvalidException;
-import com.stephen.bangbang.exception.task.TaskInfoInvalidException;
-import com.stephen.bangbang.exception.task.TaskNotFoundException;
-import com.stephen.bangbang.exception.user.*;
+import com.stephen.bangbang.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

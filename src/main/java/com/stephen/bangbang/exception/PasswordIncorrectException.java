@@ -1,4 +1,4 @@
-package com.stephen.bangbang.exception.user;
+package com.stephen.bangbang.exception;
 
 public class PasswordIncorrectException extends RuntimeException {
 }
