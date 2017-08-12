@@ -2,6 +2,7 @@ package com.stephen.bangbang.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.stephen.bangbang.domain.User;
+import com.stephen.bangbang.dto.FriendsResponse;
 
 public interface UserService {
     User register(String username, String password);
@@ -19,4 +20,6 @@ public interface UserService {
     void update(Long userId, ObjectNode updatedNode);
 
     String getToken(Long userId);
+
+    FriendsResponse getFriends(Long userId);
 }

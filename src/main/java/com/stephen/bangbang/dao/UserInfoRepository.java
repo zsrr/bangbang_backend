@@ -1,6 +1,7 @@
 package com.stephen.bangbang.dao;
 
 import com.stephen.bangbang.domain.User;
+import com.stephen.bangbang.dto.FriendsResponse;
 
 public interface UserInfoRepository {
     User findUser(String name);
@@ -9,4 +10,5 @@ public interface UserInfoRepository {
     void update(User updatedUser);
     boolean hasUser(Long id);
     boolean hasUser(String username);
+    FriendsResponse getFriends(Long userId);
 }

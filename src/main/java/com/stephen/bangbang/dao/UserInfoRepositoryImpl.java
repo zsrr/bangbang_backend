@@ -1,6 +1,8 @@
 package com.stephen.bangbang.dao;
 
 import com.stephen.bangbang.domain.User;
+import com.stephen.bangbang.dto.FriendsResponse;
+import com.stephen.bangbang.dto.SingleFriendInfo;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
@@ -11,6 +13,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 @Repository
 @Transactional(isolation = Isolation.REPEATABLE_READ)
@@ -75,5 +80,19 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
         } catch (NoResultException e) {
             return false;
         }
+    }
+
+    @Override
+    public FriendsResponse getFriends(Long userId) {
+        Session session = getCurrentSession();
+        List<SingleFriendInfo> infos = new ArrayList<>();
+        User user = session.get(User.class, userId);
+        Iterator<User> iterator = user.getFriends().iterator();
+        while (iterator.hasNext()) {
+            User friend = iterator.next();
+            SingleFriendInfo info = new SingleFriendInfo(friend);
+            infos.add(info);
+        }
+        return new FriendsResponse(infos);
     }
 }

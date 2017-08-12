@@ -1,14 +1,13 @@
 package com.stephen.bangbang.web;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.stephen.bangbang.Constants;
 import com.stephen.bangbang.authorization.Authorization;
 import com.stephen.bangbang.authorization.CurrentUserId;
 import com.stephen.bangbang.domain.HelpingTask;
 import com.stephen.bangbang.domain.User;
-import com.stephen.bangbang.dto.BaseResponse;
-import com.stephen.bangbang.dto.TasksResponse;
-import com.stephen.bangbang.dto.UserLoginResponse;
-import com.stephen.bangbang.dto.UserRegisterResponse;
+import com.stephen.bangbang.dto.*;
+import com.stephen.bangbang.exception.ActionResolveException;
 import com.stephen.bangbang.exception.TaskInfoInvalidException;
 import com.stephen.bangbang.exception.NotCurrentUserException;
 import com.stephen.bangbang.exception.UserInfoInvalidException;
@@ -117,6 +116,32 @@ public class UserController {
         taskService.publish(userId, ht);
 
         return new ResponseEntity<BaseResponse>(new BaseResponse(HttpStatus.CREATED, null), HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value = "/{userId}/friends", method = RequestMethod.GET)
+    @Authorization
+    public ResponseEntity<FriendsResponse> friends(@PathVariable("userId") Long userId, @CurrentUserId Long currentUserId) {
+        if (!userId.equals(currentUserId)) {
+            throw new NotCurrentUserException();
+        }
+
+        FriendsResponse response = userService.getFriends(userId);
+        return new ResponseEntity<FriendsResponse>(response, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{userId}/friends", method = RequestMethod.POST)
+    @Authorization
+    public ResponseEntity<BaseResponse> makeFriend(@PathVariable("userId") Long userId,
+                                                   @CurrentUserId Long currentUserId,
+                                                   @RequestParam("action") String action,
+                                                   @RequestParam(value = "targetUserId", required = false) Long id) {
+        if (action.equals(Constants.FRIENDS_MAKE)) {
+
+        } else if (action.equals(Constants.FRIENDS_AGREE)) {
+
+        } else {
+            throw new ActionResolveException("名为" + action + "的动作无法解析");
+        }
     }
 
 }

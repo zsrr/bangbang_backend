@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.stephen.bangbang.authorization.TokenManager;
 import com.stephen.bangbang.dao.UserInfoRepository;
 import com.stephen.bangbang.domain.User;
+import com.stephen.bangbang.dto.FriendsResponse;
 import com.stephen.bangbang.exception.JPushException;
 import com.stephen.bangbang.exception.JsonInvalidException;
 import com.stephen.bangbang.exception.DuplicatedUserException;
@@ -157,6 +158,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getToken(Long userId) {
         return tokenManager.getToken(userId).getToken();
+    }
+
+    @Override
+    public FriendsResponse getFriends(Long userId) {
+        return userDao.getFriends(userId);
     }
 
     private User merge(User targetUser, ObjectNode node) throws JsonProcessingException {

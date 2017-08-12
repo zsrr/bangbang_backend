@@ -11,6 +11,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -97,7 +98,21 @@ public class User implements Serializable {
     @org.hibernate.annotations.OrderBy(clause = "id desc")
     protected Set<HelpingTask> tasks = new LinkedHashSet<>();
 
-    // 先设置这两个
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(name = "FRIENDS",
+            joinColumns = @JoinColumn(name = "A_ID"),
+            inverseJoinColumns = @JoinColumn(name = "B_ID"))
+    protected Set<User> friends = new HashSet<>();
+
+    public void makeFriend(User friend) {
+        friends.add(friend);
+        friend.getFriends().add(this);
+    }
+
+    public Set<User> getFriends() {
+        return friends;
+    }
 
     public Long getId() {
         return id;
