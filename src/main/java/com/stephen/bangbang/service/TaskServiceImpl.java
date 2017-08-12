@@ -3,7 +3,6 @@ package com.stephen.bangbang.service;
 import com.stephen.bangbang.dao.TaskRepository;
 import com.stephen.bangbang.dao.UserInfoRepository;
 import com.stephen.bangbang.domain.HelpingTask;
-import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.TasksResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

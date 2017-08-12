@@ -10,4 +10,5 @@ public interface TaskRepository {
     TasksResponse findAllTasksByUserId(Long userId, Long lastTaskId, int number);
     void publish(Long userId, HelpingTask helpingTask);
     HelpingTask findTask(Long taskId);
+    boolean hasTask(Long taskId);
 }

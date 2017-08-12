@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.persistence.TypedQuery;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Repository
@@ -84,14 +84,18 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
 
     @Override
     public HelpingTask findTask(Long taskId) {
+        return getCurrentSession().get(HelpingTask.class, taskId);
+    }
+
+    @Override
+    public boolean hasTask(Long taskId) {
         Session session = getCurrentSession();
-        TypedQuery<HelpingTask> taskQuery = session.createQuery("select i from HelpingTask i where i.id = :id").setParameter("id", taskId);
-        taskQuery.setMaxResults(1);
-        List<HelpingTask> taskList = taskQuery.getResultList();
-        if (taskList == null || taskList.isEmpty()) {
-            return null;
+        try {
+            HelpingTask reference = session.getReference(HelpingTask.class, taskId);
+            return reference != null;
+        } catch (EntityNotFoundException e) {
+            return false;
         }
-        return taskList.get(0);
     }
 
     private int getCurrentPage(Long lastTaskId, int numberPerPage) {

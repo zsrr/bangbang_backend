@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.List;
 
-// 先设置成最严格的，最后再进行优化
 @Repository
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserInfoRepository {
@@ -26,27 +26,17 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
         Session session = getCurrentSession();
         TypedQuery<User> userQuery = session.createQuery("select i from User i where i.username = :name").setParameter("name", name);
         userQuery.setHint("org.hibernate.cacheable", true);
-        // 无法理解的api设计
-        userQuery.setMaxResults(1);
-        List<User> userList = userQuery.getResultList();
-        if (userList == null || userList.isEmpty()) {
+        try {
+            return userQuery.getSingleResult();
+        } catch (NoResultException e) {
             return null;
         }
-        return userList.get(0);
     }
 
     @Override
     public User findUser(Long id) {
         Session session = getCurrentSession();
-        TypedQuery<User> userQuery = session.createQuery("select i from User i where i.id = :id").setParameter("id", id);
-        userQuery.setHint("org.hibernate.cacheable", true);
-        // 无法理解的api设计
-        userQuery.setMaxResults(1);
-        List<User> userList = userQuery.getResultList();
-        if (userList == null || userList.isEmpty()) {
-            return null;
-        }
-        return userList.get(0);
+        return session.get(User.class, id);
     }
 
     @Override
@@ -62,5 +52,28 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
     public void update(User updatedUser) {
         Session session = getCurrentSession();
         session.update(updatedUser);
+    }
+
+    @Override
+    public boolean hasUser(Long id) {
+        Session session = getCurrentSession();
+        try {
+            User user = session.getReference(User.class, id);
+            return user != null;
+        } catch (EntityNotFoundException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean hasUser(String username) {
+        Session session = getCurrentSession();
+        TypedQuery<Long> userQuery = session.createQuery("select u.id from User u where u.username = :name").setParameter("name", username);
+        try {
+            Long id = userQuery.getSingleResult();
+            return id != null;
+        } catch (NoResultException e) {
+            return false;
+        }
     }
 }
