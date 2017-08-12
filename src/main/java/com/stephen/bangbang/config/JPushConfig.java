@@ -2,31 +2,24 @@ package com.stephen.bangbang.config;
 
 import cn.jiguang.common.ClientConfig;
 import cn.jpush.api.JPushClient;
+import com.stephen.bangbang.Constants;
+import com.stephen.bangbang.utils.PropertiesUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
 
 @Configuration
 public class JPushConfig {
     @Bean
     public JPushClient jPushClient() {
-        Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream("config/jpush.properties"));
+        PropertiesUtils propertiesUtils = new PropertiesUtils();
+        propertiesUtils.load("/config/jpush.properties");
 
-            ClientConfig clientConfig = ClientConfig.getInstance();
-            // 测试环境下
-            clientConfig.setApnsProduction(false);
-            clientConfig.setConnectionTimeout(10 * 1000);
-            clientConfig.setMaxRetryTimes(5);
+        ClientConfig clientConfig = ClientConfig.getInstance();
+        clientConfig.setApnsProduction(Constants.JIHUANG_CLIENT_IN_PRODUCTION);
+        clientConfig.setConnectionTimeout(Constants.JIGUANG_CLIENT_CONNECTION_TIME_OUT);
+        clientConfig.setMaxRetryTimes(Constants.JIGUANG_CLIENT_MAX_RETRY);
 
-            return new JPushClient(properties.getProperty("secret"), properties.getProperty("appKey"), null, clientConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return new JPushClient(propertiesUtils.getProperty("secret"),
+                propertiesUtils.getProperty("appKey"), null, clientConfig);
     }
 }
