@@ -14,7 +14,6 @@ import com.stephen.bangbang.exception.NotCurrentUserException;
 import com.stephen.bangbang.exception.UserInfoInvalidException;
 import com.stephen.bangbang.service.TaskService;
 import com.stephen.bangbang.service.UserService;
-import com.stephen.bangbang.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +64,7 @@ public class UserController {
         } catch (NumberFormatException e) {
             user = userService.login(identifier, password, registrationId);
         }
-        UserLoginResponse userLoginResponse = new UserLoginResponse(user, ((UserServiceImpl) userService).getTokenManager().getToken(user.getId()).getToken());
+        UserLoginResponse userLoginResponse = new UserLoginResponse(user, userService.getToken(user.getId()));
         return new ResponseEntity<UserLoginResponse>(userLoginResponse, HttpStatus.OK);
     }
 

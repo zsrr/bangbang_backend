@@ -17,4 +17,6 @@ public interface UserService {
     User getUser(Long userId);
 
     void update(Long userId, ObjectNode updatedNode);
+
+    String getToken(Long userId);
 }

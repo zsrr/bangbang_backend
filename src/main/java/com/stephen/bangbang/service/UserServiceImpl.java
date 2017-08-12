@@ -154,6 +154,11 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public String getToken(Long userId) {
+        return tokenManager.getToken(userId).getToken();
+    }
+
     private User merge(User targetUser, ObjectNode node) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode targetNode = objectMapper.convertValue(targetUser, ObjectNode.class);
@@ -167,9 +172,5 @@ public class UserServiceImpl implements UserService {
         }
 
         return objectMapper.treeToValue(targetNode, User.class);
-    }
-
-    public TokenManager getTokenManager() {
-        return tokenManager;
     }
 }
