@@ -20,7 +20,10 @@ import java.util.List;
 @Transactional(isolation = Isolation.SERIALIZABLE)
 public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskRepository {
 
-    private static final String HIBERNATE_CACHEABLE = "org.hibernate.cacheable";
+    private interface PageWorker {
+        int countPage();
+        int getCurrentPage();
+    }
 
     @Inject
     public TaskRepositoryImpl(SessionFactory sessionFactory) {
@@ -30,24 +33,105 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
     @Override
     public TasksResponse findAllTasks(Long lastTaskId, int number) {
         Session session = getCurrentSession();
-        return baseQueryStructure(session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
-                session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
-                0L, lastTaskId, number);
+        return baseQueryStructure(session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h order by h.id desc").setMaxResults(number),
+                session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId order by h.id desc").setMaxResults(number),
+                !lastTaskId.equals(0L), new PageWorker() {
+                    @Override
+                    public int countPage() {
+                        Query<Long> query = session.createQuery("select count(h) from HelpingTask h");
+                        long total = query.getSingleResult();
+                        return TaskRepositoryImpl.this.countPage((int) total, number);
+                    }
+
+                    @Override
+                    public int getCurrentPage() {
+                        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId").setParameter("lastId", lastTaskId);
+                        long count = query.getSingleResult() + 1;
+                        return TaskRepositoryImpl.this.countPage((int) count, number);
+                    }
+                });
     }
 
     @Override
     public TasksResponse findAllTasksByUserId(Long userId, Long lastTaskId, int number) {
         Session session = getCurrentSession();
-        return baseQueryStructure(session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
-                session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId and h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
-                userId, lastTaskId, number);
+        return baseQueryStructure(session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number),
+                session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId and h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number),
+                !lastTaskId.equals(0L), new PageWorker() {
+                    @Override
+                    public int countPage() {
+                        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user.id = :userId").setParameter("userId", userId);
+                        long total = query.getSingleResult();
+                        return TaskRepositoryImpl.this.countPage((int) total, number);
+                    }
+
+                    @Override
+                    public int getCurrentPage() {
+                        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId and h.user.id = :userId").setParameter("lastId", lastTaskId).setParameter("userId", userId);
+                        long count = query.getSingleResult() + 1;
+                        return TaskRepositoryImpl.this.countPage((int) count, number);
+                    }
+                });
     }
 
-    private TasksResponse baseQueryStructure(Query<TaskSnapshot> queryWithNoLastId, Query<TaskSnapshot> queryWithLastId, Long userId, Long lastTaskId, int number) {
+    @Override
+    public TasksResponse findTasksPublishedByFriends(Long userId, Long lastTaskId, int number) {
         Session session = getCurrentSession();
-        int totalPage = getPageCount(userId, number);
+        Query<TaskSnapshot> queryWithoutLastTaskId = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user in (select u.friends from User u where u.id = :userId) order by h.id desc")
+                .setParameter("userId", userId)
+                .setMaxResults(number);
+        Query<TaskSnapshot> queryWithLastTaskId = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user in (select u.friends from User u where u.id = :userId) and h.id < :lastId order by h.id desc")
+                .setParameter("userId", userId)
+                .setParameter("lastId", lastTaskId)
+                .setMaxResults(number);
+        return baseQueryStructure(queryWithoutLastTaskId, queryWithLastTaskId, !lastTaskId.equals(0L), new PageWorker() {
+            @Override
+            public int countPage() {
+                Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user in (select u.friends from User u where u.id = :userId)").setParameter("userId", userId);
+                long total = query.getSingleResult();
+                return TaskRepositoryImpl.this.countPage((int) total, number);
+            }
+
+            @Override
+            public int getCurrentPage() {
+                Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user in (select u.friends from User u where u.id = :userId) and h.id >= :lastTaskId").setParameter("userId", userId).setParameter("lastTaskId", lastTaskId);
+                long count = query.getSingleResult() + 1;
+                return TaskRepositoryImpl.this.countPage((int) count, number);
+            }
+        });
+    }
+
+    @Override
+    public TasksResponse findTasksPublishedByStrangers(Long userId, Long lastTaskId, int number) {
+        Session session = getCurrentSession();
+        Query<TaskSnapshot> queryWithoutLastTaskId = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user not in (select u.friends from User u where u.id = :userId) order by h.id desc")
+                .setParameter("userId", userId)
+                .setMaxResults(number);
+        Query<TaskSnapshot> queryWithLastTaskId = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user not in (select u.friends from User u where u.id = :userId) and h.id < :lastId order by h.id desc")
+                .setParameter("userId", userId)
+                .setParameter("lastId", lastTaskId)
+                .setMaxResults(number);
+        return baseQueryStructure(queryWithoutLastTaskId, queryWithLastTaskId, !lastTaskId.equals(0L), new PageWorker() {
+            @Override
+            public int countPage() {
+                Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user not in (select u.friends from User u where u.id = :userId)").setParameter("userId", userId);
+                long total = query.getSingleResult();
+                return TaskRepositoryImpl.this.countPage((int) total, number);
+            }
+
+            @Override
+            public int getCurrentPage() {
+                Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user not in (select u.friends from User u where u.id = :userId) and h.id >= :lastTaskId").setParameter("userId", userId).setParameter("lastTaskId", lastTaskId);
+                long count = query.getSingleResult() + 1;
+                return TaskRepositoryImpl.this.countPage((int) count, number);
+            }
+        });
+    }
+
+    private TasksResponse baseQueryStructure(Query<TaskSnapshot> queryWithNoLastId, Query<TaskSnapshot> queryWithLastId, boolean withLastTaskId, PageWorker pageWorker) {
+        int totalPage = pageWorker.countPage();
         int currentPage;
-        if (lastTaskId.equals(0L)) {
+        if (!withLastTaskId) {
             currentPage = 1;
             if (currentPage > totalPage) {
                 currentPage = totalPage;
@@ -55,7 +139,7 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
             List<TaskSnapshot> snapshots = queryWithNoLastId.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         } else {
-            currentPage = getCurrentPage(userId, lastTaskId, number);
+            currentPage = pageWorker.getCurrentPage();
             if (currentPage > totalPage) {
                 currentPage = totalPage;
                 return new TasksResponse(new Pagination(currentPage, totalPage), null);
@@ -63,16 +147,6 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
             List<TaskSnapshot> snapshots = queryWithLastId.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         }
-    }
-
-    @Override
-    public TasksResponse findTasksPublishedByFriends(Long userId, Long lastTaskId, int number) {
-        return null;
-    }
-
-    @Override
-    public TasksResponse findTasksPublishedByUserStrangers(Long userId, Long lastTaskId, int number) {
-        return null;
     }
 
     @Override
@@ -97,32 +171,6 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
             return reference != null;
         } catch (EntityNotFoundException e) {
             return false;
-        }
-    }
-
-    private int getCurrentPage(Long userId, Long lastTaskId, int numberPerPage) {
-        Session session = getCurrentSession();
-        if (userId.equals(0L)) {
-            Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId").setParameter("lastId", lastTaskId);
-            long count = query.getSingleResult() + 1;
-            return countPage((int) count, numberPerPage);
-        } else {
-            Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId and h.user.id = :userId").setParameter("lastId", lastTaskId).setParameter("userId", userId);
-            long count = query.getSingleResult() + 1;
-            return countPage((int) count, numberPerPage);
-        }
-    }
-
-    private int getPageCount(Long userId, int numberPerPage) {
-        Session session = getCurrentSession();
-        if (userId.equals(0L)) {
-            Query<Long> query = session.createQuery("select count(h) from HelpingTask h");
-            long total = query.getSingleResult();
-            return countPage((int) total, numberPerPage);
-        } else {
-            Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user.id = :userId").setParameter("userId", userId);
-            long total = query.getSingleResult();
-            return countPage((int) total, numberPerPage);
         }
     }
 

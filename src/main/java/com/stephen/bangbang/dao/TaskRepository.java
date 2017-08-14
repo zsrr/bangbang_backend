@@ -9,7 +9,7 @@ public interface TaskRepository {
     TasksResponse findAllTasks(Long lastTaskId, int number);
     TasksResponse findAllTasksByUserId(Long userId, Long lastTaskId, int number);
     TasksResponse findTasksPublishedByFriends(Long userId, Long lastTaskId, int number);
-    TasksResponse findTasksPublishedByUserStrangers(Long userId, Long lastTaskId, int number);
+    TasksResponse findTasksPublishedByStrangers(Long userId, Long lastTaskId, int number);
     void publish(Long userId, HelpingTask helpingTask);
     HelpingTask findTask(Long taskId);
     boolean hasTask(Long taskId);

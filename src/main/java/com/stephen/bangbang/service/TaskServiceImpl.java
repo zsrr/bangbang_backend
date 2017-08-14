@@ -33,6 +33,20 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public TasksResponse getTasksMadeByFriends(Long userId, Long lastTaskId, int number) {
+        invalidTask(lastTaskId, taskDAO);
+        invalidUser(userId, userDAO);
+        return taskDAO.findTasksPublishedByFriends(userId, lastTaskId, number);
+    }
+
+    @Override
+    public TasksResponse getTasksMadeByStrangers(Long userId, Long lastTaskId, int number) {
+        invalidTask(lastTaskId, taskDAO);
+        invalidUser(userId, userDAO);
+        return taskDAO.findTasksPublishedByStrangers(userId, lastTaskId, number);
+    }
+
+    @Override
     public void publish(Long userId, HelpingTask helpingTask) {
         taskDAO.publish(userId, helpingTask);
     }
