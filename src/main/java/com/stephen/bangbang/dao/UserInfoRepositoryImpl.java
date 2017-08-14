@@ -95,4 +95,13 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
         }
         return new FriendsResponse(infos);
     }
+
+    @Override
+    public void makeFriend(Long userId, Long targetUserId) {
+        Session session = getCurrentSession();
+        User user = session.get(User.class, userId);
+        User targetUser = session.get(User.class, targetUserId);
+        user.makeFriend(targetUser);
+        session.flush();
+    }
 }

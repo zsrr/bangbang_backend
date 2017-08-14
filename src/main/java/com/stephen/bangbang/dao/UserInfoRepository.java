@@ -11,4 +11,5 @@ public interface UserInfoRepository {
     boolean hasUser(Long id);
     boolean hasUser(String username);
     FriendsResponse getFriends(Long userId);
+    void makeFriend(Long userId, Long targetUserId);
 }

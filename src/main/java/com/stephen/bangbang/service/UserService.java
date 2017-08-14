@@ -22,4 +22,8 @@ public interface UserService {
     String getToken(Long userId);
 
     FriendsResponse getFriends(Long userId);
+
+    void makeFriendOnMake(Long userId, Long targetUserId);
+
+    void makeFriendOnAgree(Long userId, Long targetUserId);
 }

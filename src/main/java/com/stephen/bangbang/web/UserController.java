@@ -134,14 +134,20 @@ public class UserController {
     public ResponseEntity<BaseResponse> makeFriend(@PathVariable("userId") Long userId,
                                                    @CurrentUserId Long currentUserId,
                                                    @RequestParam("action") String action,
-                                                   @RequestParam(value = "targetUserId", required = false) Long id) {
+                                                   @RequestParam(value = "targetUserId") Long targetUserId) {
+        if (!currentUserId.equals(userId)) {
+            throw new NotCurrentUserException();
+        }
+
         if (action.equals(Constants.FRIENDS_MAKE)) {
-
+            userService.makeFriendOnMake(userId, targetUserId);
         } else if (action.equals(Constants.FRIENDS_AGREE)) {
-
+            userService.makeFriendOnAgree(userId, targetUserId);
         } else {
             throw new ActionResolveException("名为" + action + "的动作无法解析");
         }
+
+        return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
     }
 
 }

@@ -1,14 +1,5 @@
 package com.stephen.bangbang.service;
 
-import cn.jiguang.common.resp.APIConnectionException;
-import cn.jiguang.common.resp.APIRequestException;
-import cn.jpush.api.JPushClient;
-import cn.jpush.api.push.model.Platform;
-import cn.jpush.api.push.model.PushPayload;
-import cn.jpush.api.push.model.audience.Audience;
-import cn.jpush.api.push.model.notification.AndroidNotification;
-import cn.jpush.api.push.model.notification.IosNotification;
-import cn.jpush.api.push.model.notification.Notification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,11 +8,7 @@ import com.stephen.bangbang.authorization.TokenManager;
 import com.stephen.bangbang.dao.UserInfoRepository;
 import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.FriendsResponse;
-import com.stephen.bangbang.exception.JPushException;
-import com.stephen.bangbang.exception.JsonInvalidException;
-import com.stephen.bangbang.exception.DuplicatedUserException;
-import com.stephen.bangbang.exception.PasswordIncorrectException;
-import com.stephen.bangbang.exception.UserNotFoundException;
+import com.stephen.bangbang.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,11 +22,11 @@ public class UserServiceImpl implements UserService {
     private UserInfoRepository userDao;
     private TokenManager tokenManager;
     private RedisTemplate<String, String> redisTemplate;
-    private JPushClient jPushClient;
+    private JPushService jPushService;
 
     @Autowired
-    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager, RedisTemplate<String, String> redisTemplate, JPushClient jPushClient) {
-        this.jPushClient = jPushClient;
+    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager, RedisTemplate<String, String> redisTemplate, JPushService jPushService) {
+        this.jPushService = jPushService;
         this.userDao = userDao;
         this.tokenManager = tokenManager;
         this.redisTemplate = redisTemplate;
@@ -81,39 +68,7 @@ public class UserServiceImpl implements UserService {
             throw new PasswordIncorrectException();
         }
         tokenManager.createToken(user.getId());
-        allopatricLogin(user.getId(), registrationId);
-    }
-
-    private void allopatricLogin(Long userId, String registrationId) {
-        BoundValueOperations<String, String> ops = redisTemplate.boundValueOps("" + userId);
-        String formerRegistrationId = ops.get();
-        if (formerRegistrationId == null || formerRegistrationId.equals("")) {
-            ops.set(formerRegistrationId);
-        } else if (!formerRegistrationId.equals(registrationId)) {
-            PushPayload pushPayload = getAllopatricLoginPayload(formerRegistrationId);
-            try {
-                jPushClient.sendPush(pushPayload);
-                ops.set(registrationId);
-            } catch (APIConnectionException | APIRequestException e) {
-                throw new JPushException(e);
-            }
-        }
-    }
-
-    private PushPayload getAllopatricLoginPayload(String destination) {
-        return PushPayload.newBuilder()
-                .setPlatform(Platform.all())
-                .setAudience(Audience.registrationId(destination))
-                .setNotification(Notification.newBuilder()
-                        .setAlert("存在异地登录，请检查账号密码是否被更改")
-                        .addPlatformNotification(
-                                AndroidNotification.newBuilder()
-                                        .setTitle("异地登录").build())
-                        .addPlatformNotification(
-                                IosNotification.newBuilder()
-                                        .incrBadge(1).
-                                        build()).build()).
-                        build();
+        jPushService.allopatricLogin(user.getId(), registrationId);
     }
 
     @Override
@@ -148,6 +103,7 @@ public class UserServiceImpl implements UserService {
             // 更改密码操作
             if (updatedNode.get("password") != null) {
                 tokenManager.deleteToken(userId);
+                jPushService.updatePassword(userId);
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -163,6 +119,30 @@ public class UserServiceImpl implements UserService {
     @Override
     public FriendsResponse getFriends(Long userId) {
         return userDao.getFriends(userId);
+    }
+
+    @Override
+    public void makeFriendOnMake(Long userId, Long targetUserId) {
+        if (!userDao.hasUser(userId) || !userDao.hasUser(targetUserId)) {
+            throw new UserNotFoundException();
+        }
+
+        jPushService.makeFriendOnMake(userId, targetUserId);
+        redisTemplate.boundSetOps("make-friends-requests").add(userId + "-" + targetUserId);
+    }
+
+    @Override
+    public void makeFriendOnAgree(Long userId, Long targetUserId) {
+        if (!userDao.hasUser(userId) || !userDao.hasUser(targetUserId)) {
+            throw new UserNotFoundException();
+        }
+
+        if (!redisTemplate.boundSetOps("make-friends-requests").isMember(targetUserId + "-" + userId)) {
+            throw new NoMakingFriendsException();
+        }
+
+        userDao.makeFriend(userId, targetUserId);
+        jPushService.makeFriendOnAgree(userId, targetUserId);
     }
 
     private User merge(User targetUser, ObjectNode node) throws JsonProcessingException {
