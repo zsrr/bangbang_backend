@@ -3,7 +3,7 @@ package com.stephen.bangbang.config;
 import cn.jiguang.common.ClientConfig;
 import cn.jpush.api.JPushClient;
 import com.stephen.bangbang.Constants;
-import com.stephen.bangbang.utils.PropertiesUtils;
+import com.stephen.bangbang.base.utils.PropertiesUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

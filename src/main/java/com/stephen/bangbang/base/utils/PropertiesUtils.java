@@ -1,4 +1,4 @@
-package com.stephen.bangbang.utils;
+package com.stephen.bangbang.base.utils;
 
 import java.io.IOException;
 import java.util.Properties;

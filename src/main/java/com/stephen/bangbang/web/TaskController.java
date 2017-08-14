@@ -22,7 +22,8 @@ public class TaskController {
 
     @RequestMapping(value = "", method = RequestMethod.GET)
     public ResponseEntity<TasksResponse> findAllTasks(@RequestParam(value = "lastTaskId", defaultValue = "0") Long lastTaskId,
-                                                      @RequestParam(value = "numberPerPage", defaultValue = "5") int numberPerPage) {
+                                                      @RequestParam(value = "numberPerPage", defaultValue = "5") int numberPerPage,
+                                                      @RequestParam(value = "scope") String scope) {
         TasksResponse tr = taskService.getAllTasks(lastTaskId, numberPerPage);
         return new ResponseEntity<TasksResponse>(tr, HttpStatus.OK);
     }

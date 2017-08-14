@@ -30,36 +30,29 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
     @Override
     public TasksResponse findAllTasks(Long lastTaskId, int number) {
         Session session = getCurrentSession();
-        int totalPage = getPageCount(number);
-        int currentPage;
-        if (lastTaskId == 0) {
-            currentPage = 1;
-            if (currentPage > totalPage)
-                currentPage = totalPage;
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
-            List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
-            return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
-        } else {
-            currentPage = getCurrentPage(lastTaskId, number);
-            if (currentPage > totalPage) {
-                currentPage = totalPage;
-                return new TasksResponse(new Pagination(currentPage, totalPage), null);
-            }
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
-            List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
-            return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
-        }
+        return baseQueryStructure(session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
+                session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId order by h.id desc").setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
+                0L, lastTaskId, number);
     }
 
     @Override
     public TasksResponse findAllTasksByUserId(Long userId, Long lastTaskId, int number) {
         Session session = getCurrentSession();
+        return baseQueryStructure(session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
+                session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId and h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true),
+                userId, lastTaskId, number);
+    }
+
+    private TasksResponse baseQueryStructure(Query<TaskSnapshot> queryWithNoLastId, Query<TaskSnapshot> queryWithLastId, Long userId, Long lastTaskId, int number) {
+        Session session = getCurrentSession();
         int totalPage = getPageCount(userId, number);
         int currentPage;
-        if (lastTaskId == 0) {
+        if (lastTaskId.equals(0L)) {
             currentPage = 1;
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
-            List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
+            if (currentPage > totalPage) {
+                currentPage = totalPage;
+            }
+            List<TaskSnapshot> snapshots = queryWithNoLastId.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         } else {
             currentPage = getCurrentPage(userId, lastTaskId, number);
@@ -67,10 +60,19 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
                 currentPage = totalPage;
                 return new TasksResponse(new Pagination(currentPage, totalPage), null);
             }
-            Query<TaskSnapshot> snapshotQuery = session.createQuery("select new com.stephen.bangbang.dto.TaskSnapshot(h) from HelpingTask h where h.id < :lastId and h.user.id = :userId order by h.id desc").setParameter("userId", userId).setMaxResults(number).setHint(HIBERNATE_CACHEABLE, true);
-            List<TaskSnapshot> snapshots = snapshotQuery.getResultList();
+            List<TaskSnapshot> snapshots = queryWithLastId.getResultList();
             return new TasksResponse(new Pagination(currentPage, totalPage), snapshots);
         }
+    }
+
+    @Override
+    public TasksResponse findTasksPublishedByFriends(Long userId, Long lastTaskId, int number) {
+        return null;
+    }
+
+    @Override
+    public TasksResponse findTasksPublishedByUserStrangers(Long userId, Long lastTaskId, int number) {
+        return null;
     }
 
     @Override
@@ -98,40 +100,35 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
         }
     }
 
-    private int getCurrentPage(Long lastTaskId, int numberPerPage) {
-        Session session = getCurrentSession();
-        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId").setParameter("lastId", lastTaskId);
-        long count = query.getSingleResult() + 1;
-        return countPage((int) count, numberPerPage);
-    }
-
     private int getCurrentPage(Long userId, Long lastTaskId, int numberPerPage) {
         Session session = getCurrentSession();
-        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId and h.user.id = :userId").setParameter("lastId", lastTaskId).setParameter("userId", userId);
-        long count = query.getSingleResult() + 1;
-        return countPage((int) count, numberPerPage);
-    }
-
-    private int getPageCount(int numberPerPage) {
-        Session session = getCurrentSession();
-        Query<Long> query = session.createQuery("select count(h) from HelpingTask h");
-        long total = query.getSingleResult();
-        return countPage((int) total, numberPerPage);
+        if (userId.equals(0L)) {
+            Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId").setParameter("lastId", lastTaskId);
+            long count = query.getSingleResult() + 1;
+            return countPage((int) count, numberPerPage);
+        } else {
+            Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.id >= :lastId and h.user.id = :userId").setParameter("lastId", lastTaskId).setParameter("userId", userId);
+            long count = query.getSingleResult() + 1;
+            return countPage((int) count, numberPerPage);
+        }
     }
 
     private int getPageCount(Long userId, int numberPerPage) {
         Session session = getCurrentSession();
-        Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user.id = :userId").setParameter("userId", userId);
-        long total = query.getSingleResult();
-        return countPage((int) total, numberPerPage);
+        if (userId.equals(0L)) {
+            Query<Long> query = session.createQuery("select count(h) from HelpingTask h");
+            long total = query.getSingleResult();
+            return countPage((int) total, numberPerPage);
+        } else {
+            Query<Long> query = session.createQuery("select count(h) from HelpingTask h where h.user.id = :userId").setParameter("userId", userId);
+            long total = query.getSingleResult();
+            return countPage((int) total, numberPerPage);
+        }
     }
 
     private int countPage(int total, int numberPerPage) {
-        if (total % numberPerPage == 0) {
-            return total / numberPerPage;
-        }
-
-        return total / numberPerPage + 1;
+        return total % numberPerPage == 0 ?
+                total / numberPerPage :
+                total / numberPerPage + 1;
     }
-
 }

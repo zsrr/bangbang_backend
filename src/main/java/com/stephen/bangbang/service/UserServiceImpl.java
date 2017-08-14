@@ -143,6 +143,7 @@ public class UserServiceImpl implements UserService {
 
         userDao.makeFriend(userId, targetUserId);
         jPushService.makeFriendOnAgree(userId, targetUserId);
+        redisTemplate.boundSetOps("make-friends-requests").remove(targetUserId + "-" + userId);
     }
 
     private User merge(User targetUser, ObjectNode node) throws JsonProcessingException {
