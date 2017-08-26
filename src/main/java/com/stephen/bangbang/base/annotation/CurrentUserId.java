@@ -1,4 +1,4 @@
-package com.stephen.bangbang.base.authorization;
+package com.stephen.bangbang.base.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -3,7 +3,7 @@ package com.stephen.bangbang.service;
 import com.stephen.bangbang.domain.HelpingTask;
 import com.stephen.bangbang.dto.TasksResponse;
 
-public interface TaskService extends TaskInvalidService, UserInvalidService {
+public interface TaskService {
     TasksResponse getAllTasks(Long lastTaskId, int number);
     TasksResponse getAllTasksByUser(Long userId, Long lastTaskId, int number);
     TasksResponse getTasksMadeByFriends(Long userId, Long lastTaskId, int number);

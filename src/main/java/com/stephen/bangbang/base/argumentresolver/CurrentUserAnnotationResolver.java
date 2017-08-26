@@ -1,6 +1,7 @@
-package com.stephen.bangbang.base.authorization;
+package com.stephen.bangbang.base.argumentresolver;
 
 import com.stephen.bangbang.Constants;
+import com.stephen.bangbang.base.annotation.CurrentUserId;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -17,6 +18,6 @@ public class CurrentUserAnnotationResolver implements HandlerMethodArgumentResol
 
     @Override
     public Object resolveArgument(MethodParameter methodParameter, ModelAndViewContainer modelAndViewContainer, NativeWebRequest nativeWebRequest, WebDataBinderFactory webDataBinderFactory) throws Exception {
-        return (Long) nativeWebRequest.getAttribute(Constants.CURRENT_USER_ID, RequestAttributes.SCOPE_REQUEST);
+        return nativeWebRequest.getAttribute(Constants.CURRENT_USER_ID, RequestAttributes.SCOPE_REQUEST);
     }
 }

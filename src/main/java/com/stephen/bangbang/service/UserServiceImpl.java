@@ -35,21 +35,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public User register(String username, String password) {
-        User user = userDao.findUser(username);
-        if (user != null) {
-            throw new DuplicatedUserException();
-        }
         BoundValueOperations<String, String> ops = redisTemplate.boundValueOps("user-count");
         ops.increment(1);
         String count = ops.get();
-        user = userDao.register(username, password, "User-" + count);
-        return user;
+        return userDao.register(username, password, "User-" + count);
     }
 
     @Override
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public User login(Long id, String password, String registrationId) {
         User user = userDao.findUser(id);
         postFindUser(user, password, registrationId);
@@ -57,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public User login(String username, String password, String registrationId) {
         User user = userDao.findUser(username);
         postFindUser(user, password, registrationId);
@@ -65,10 +60,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private void postFindUser(User user, String password, String registrationId) {
-        if (user == null) {
-            throw new UserNotFoundException();
-        }
-
         if (!user.getPassword().equals(password)) {
             throw new PasswordIncorrectException();
         }
@@ -132,10 +123,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void makeFriendOnMake(Long userId, Long targetUserId) {
-        if (!userDao.hasUser(userId) || !userDao.hasUser(targetUserId)) {
-            throw new UserNotFoundException();
-        }
-
         jPushService.makeFriendOnMake(userId, targetUserId);
         redisTemplate.boundSetOps("make-friends-requests").add(userId + "-" + targetUserId);
     }
@@ -143,10 +130,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void makeFriendOnAgree(Long userId, Long targetUserId) {
-        if (!userDao.hasUser(userId) || !userDao.hasUser(targetUserId)) {
-            throw new UserNotFoundException();
-        }
-
         if (!redisTemplate.boundSetOps("make-friends-requests").isMember(targetUserId + "-" + userId)) {
             throw new NoMakingFriendsException();
         }
