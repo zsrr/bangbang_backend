@@ -33,7 +33,7 @@ public class JPushServiceImpl implements JPushService {
         BoundValueOperations<String, String> ops = redisTemplate.boundValueOps(userId + "-registrationId");
         String formerRegistrationId = ops.get();
         if (formerRegistrationId == null || formerRegistrationId.equals("")) {
-            ops.set(formerRegistrationId);
+            ops.set(registrationId);
         } else if (!formerRegistrationId.equals(registrationId)) {
             PushPayload pushPayload = getAllopatricLoginPayload(formerRegistrationId);
             try {

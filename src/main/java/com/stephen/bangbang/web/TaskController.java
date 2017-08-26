@@ -1,7 +1,7 @@
 package com.stephen.bangbang.web;
 
-import com.stephen.bangbang.authorization.Authorization;
-import com.stephen.bangbang.authorization.CurrentUserId;
+import com.stephen.bangbang.base.authorization.Authorization;
+import com.stephen.bangbang.base.authorization.CurrentUserId;
 import com.stephen.bangbang.dto.TasksResponse;
 import com.stephen.bangbang.exception.ScopeResolveException;
 import com.stephen.bangbang.service.TaskService;

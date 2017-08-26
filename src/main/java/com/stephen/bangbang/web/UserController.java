@@ -2,8 +2,8 @@ package com.stephen.bangbang.web;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.stephen.bangbang.Constants;
-import com.stephen.bangbang.authorization.Authorization;
-import com.stephen.bangbang.authorization.CurrentUserId;
+import com.stephen.bangbang.base.authorization.Authorization;
+import com.stephen.bangbang.base.authorization.CurrentUserId;
 import com.stephen.bangbang.domain.HelpingTask;
 import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.*;
