@@ -15,6 +15,12 @@ public class TaskSnapshot implements Serializable {
     @JsonProperty("user_id")
     Long userId;
 
+    @JsonProperty("finished_time")
+    Long finishedTime;
+
+    @JsonProperty("person_in_charge")
+    Long personInCharge;
+
     String title;
 
     String details;
@@ -49,6 +55,7 @@ public class TaskSnapshot implements Serializable {
         maxPrice = ht.getMaxPrice();
         phone = ht.getPhone();
         note = ht.getNote();
+        personInCharge = ht.getResponsiblePerson() == null ? null : ht.getResponsiblePerson().getId();
     }
 
     public Long getTaskId() {
@@ -137,5 +144,21 @@ public class TaskSnapshot implements Serializable {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public Long getPersonInCharge() {
+        return personInCharge;
+    }
+
+    public void setPersonInCharge(Long personInCharge) {
+        this.personInCharge = personInCharge;
+    }
+
+    public Long getFinishedTime() {
+        return finishedTime;
+    }
+
+    public void setFinishedTime(Long finishedTime) {
+        this.finishedTime = finishedTime;
     }
 }

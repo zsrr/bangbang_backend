@@ -13,4 +13,7 @@ public interface TaskRepository {
     void publish(Long userId, HelpingTask helpingTask);
     HelpingTask findTask(Long taskId);
     boolean hasTask(Long taskId);
+    Long findResponsiblePersonFor(Long taskId);
+    void userInChargeOf(Long userId, Long taskId);
+    void deleteTask(Long taskId);
 }

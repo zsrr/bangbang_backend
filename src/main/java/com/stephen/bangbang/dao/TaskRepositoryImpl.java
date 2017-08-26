@@ -5,6 +5,7 @@ import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.Pagination;
 import com.stephen.bangbang.dto.TaskSnapshot;
 import com.stephen.bangbang.dto.TasksResponse;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -14,10 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
 import java.util.List;
 
 @Repository
-@Transactional(isolation = Isolation.SERIALIZABLE)
 public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskRepository {
 
     private interface PageWorker {
@@ -172,6 +173,34 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
         } catch (EntityNotFoundException e) {
             return false;
         }
+    }
+
+    @Override
+    public Long findResponsiblePersonFor(Long taskId) {
+        Session session = getCurrentSession();
+        Query<Long> query = session.createQuery("select h.responsiblePerson.id from HelpingTask h where h.id = :id").setParameter("id", taskId);
+        try {
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void userInChargeOf(Long userId, Long taskId) {
+        Session session = getCurrentSession();
+        User user = session.getReference(User.class, userId);
+        HelpingTask ht = session.getReference(HelpingTask.class, taskId);
+        ht.setResponsiblePerson(user);
+        session.flush();
+    }
+
+    @Override
+    public void deleteTask(Long taskId) {
+        Session session = getCurrentSession();
+        HelpingTask helpingTask = session.get(HelpingTask.class, taskId);
+        session.delete(helpingTask);
+        session.flush();
     }
 
     private int countPage(int total, int numberPerPage) {

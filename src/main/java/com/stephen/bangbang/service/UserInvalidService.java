@@ -9,6 +9,7 @@ public interface UserInvalidService {
             throw new UserNotFoundException();
         }
     }
+
     default void invalidUser(String username, UserInfoRepository userDAO) {
         if (!userDAO.hasUser(username)) {
             throw new UserNotFoundException();

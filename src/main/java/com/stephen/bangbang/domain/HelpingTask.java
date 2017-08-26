@@ -15,9 +15,13 @@ public class HelpingTask {
     @GeneratedValue(generator = Constants.PERFECT_SEQUENCE)
     protected Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "USER_ID", nullable = false)
     protected User user;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "PERSON_IN_CHARGE")
+    protected User responsiblePerson;
 
     @Column(nullable = false, length = 30)
     @NotNull
@@ -166,5 +170,13 @@ public class HelpingTask {
 
     public Date getCreateTime() {
         return createTime;
+    }
+
+    public User getResponsiblePerson() {
+        return responsiblePerson;
+    }
+
+    public void setResponsiblePerson(User responsiblePerson) {
+        this.responsiblePerson = responsiblePerson;
     }
 }

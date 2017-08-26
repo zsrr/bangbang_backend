@@ -6,8 +6,6 @@ import com.stephen.bangbang.dto.SingleFriendInfo;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -18,7 +16,6 @@ import java.util.Iterator;
 import java.util.List;
 
 @Repository
-@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserInfoRepository {
 
     @Inject

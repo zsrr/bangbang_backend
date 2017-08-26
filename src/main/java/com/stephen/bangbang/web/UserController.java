@@ -150,4 +150,9 @@ public class UserController {
         return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/{userId}/recentlyFinishedTasks", method = RequestMethod.GET)
+    @Authorization
+    public ResponseEntity<TasksResponse> recentlyFinishedTasks(@PathVariable("userId") Long userId) {
+        return new ResponseEntity<TasksResponse>(taskService.getTasksRecentlyFinished(userId), HttpStatus.OK);
+    }
 }

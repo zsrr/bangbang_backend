@@ -99,6 +99,11 @@ public class User implements Serializable {
     protected Set<HelpingTask> tasks = new LinkedHashSet<>();
 
     @JsonIgnore
+    @OneToMany(mappedBy = "responsiblePerson", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @org.hibernate.annotations.OrderBy(clause = "id desc")
+    protected Set<HelpingTask> inChargeTasks = new LinkedHashSet<>();
+
+    @JsonIgnore
     @ManyToMany
     @JoinTable(name = "FRIENDS",
             joinColumns = @JoinColumn(name = "A_ID"),

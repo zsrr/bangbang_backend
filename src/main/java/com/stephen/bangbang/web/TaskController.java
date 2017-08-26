@@ -2,6 +2,7 @@ package com.stephen.bangbang.web;
 
 import com.stephen.bangbang.base.authorization.Authorization;
 import com.stephen.bangbang.base.authorization.CurrentUserId;
+import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.TasksResponse;
 import com.stephen.bangbang.exception.ScopeResolveException;
 import com.stephen.bangbang.service.TaskService;
@@ -36,5 +37,17 @@ public class TaskController {
             throw new ScopeResolveException("名为" + scope + "的scope无法解析");
         }
         return new ResponseEntity<TasksResponse>(tr, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{taskId}", method = RequestMethod.PUT)
+    public ResponseEntity<BaseResponse> claimFor(@PathVariable("taskId") Long taskId, @CurrentUserId Long currentUserId) {
+        taskService.claimFor(currentUserId, taskId);
+        return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{taskId}", method = RequestMethod.DELETE)
+    public ResponseEntity<BaseResponse> deleteTask(@PathVariable("taskId") Long taskId, @RequestParam("hasDone") boolean hasDone) {
+        taskService.deleteTask(taskId, hasDone);
+        return new ResponseEntity<BaseResponse>(new BaseResponse(), HttpStatus.OK);
     }
 }

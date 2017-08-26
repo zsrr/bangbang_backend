@@ -9,4 +9,7 @@ public interface TaskService extends TaskInvalidService, UserInvalidService {
     TasksResponse getTasksMadeByFriends(Long userId, Long lastTaskId, int number);
     TasksResponse getTasksMadeByStrangers(Long userId, Long lastTaskId, int number);
     void publish(Long userId, HelpingTask helpingTask);
+    void claimFor(Long userId, Long taskId);
+    void deleteTask(Long taskId, boolean hasDone);
+    TasksResponse getTasksRecentlyFinished(Long userId);
 }

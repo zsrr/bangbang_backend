@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 
@@ -33,6 +35,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public User register(String username, String password) {
         User user = userDao.findUser(username);
         if (user != null) {
@@ -46,6 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public User login(Long id, String password, String registrationId) {
         User user = userDao.findUser(id);
         postFindUser(user, password, registrationId);
@@ -53,6 +57,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public User login(String username, String password, String registrationId) {
         User user = userDao.findUser(username);
         postFindUser(user, password, registrationId);
@@ -77,6 +82,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public User getUser(String username) {
         User user = userDao.findUser(username);
         if (user == null)
@@ -85,6 +91,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public User getUser(Long userId) {
         User user = userDao.findUser(userId);
         if (user == null)
@@ -93,6 +100,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void update(Long userId, ObjectNode updatedNode) {
         User user = userDao.findUser(userId);
         if (user == null)
@@ -117,6 +125,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public FriendsResponse getFriends(Long userId) {
         return userDao.getFriends(userId);
     }
@@ -132,6 +141,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void makeFriendOnAgree(Long userId, Long targetUserId) {
         if (!userDao.hasUser(userId) || !userDao.hasUser(targetUserId)) {
             throw new UserNotFoundException();
