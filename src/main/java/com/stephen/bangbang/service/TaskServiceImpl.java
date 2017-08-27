@@ -3,20 +3,18 @@ package com.stephen.bangbang.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stephen.bangbang.dao.TaskRepository;
-import com.stephen.bangbang.dao.UserInfoRepository;
 import com.stephen.bangbang.domain.HelpingTask;
 import com.stephen.bangbang.dto.Pagination;
 import com.stephen.bangbang.dto.TaskSnapshot;
 import com.stephen.bangbang.dto.TasksResponse;
 import com.stephen.bangbang.exception.JsonInvalidException;
-import com.stephen.bangbang.exception.TaskAlreadyBeenTakenException;
 import com.stephen.bangbang.exception.TaskWithNoPersonInChargeException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundListOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,12 +24,12 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     private TaskRepository taskDAO;
-    private RedisTemplate<String, String> redisTemplate;
+    private JedisPool jedisPool;
 
     @Autowired
-    public TaskServiceImpl(TaskRepository taskDAO, RedisTemplate redisTemplate) {
+    public TaskServiceImpl(TaskRepository taskDAO, JedisPool jedisPool) {
         this.taskDAO = taskDAO;
-        this.redisTemplate = redisTemplate;
+        this.jedisPool = jedisPool;
     }
 
     @Override
@@ -84,27 +82,30 @@ public class TaskServiceImpl implements TaskService {
         }
 
         // 保存用户最近完成的
-        Long finishedTime = System.currentTimeMillis();
-        snapshot.setFinishedTime(finishedTime);
-        BoundListOperations<String, String> ops = redisTemplate.boundListOps(snapshot.getPersonInCharge() + "-recently-finished");
+        try (Jedis jedis = jedisPool.getResource()) {
+            Long finishedTime = System.currentTimeMillis();
+            snapshot.setFinishedTime(finishedTime);
 
-        if (ops.size() > 30) {
-            ops.leftPop();
-        }
+            String key = snapshot.getPersonInCharge() + "-recently-finished";
 
-        try {
-            ops.rightPush(new ObjectMapper().writeValueAsString(snapshot));
+            if (jedis.llen(key) > 30) {
+                jedis.lpop(key);
+            }
+
+            jedis.rpush(key, new ObjectMapper().writeValueAsString(snapshot));
         } catch (JsonProcessingException e) {
-            throw  new JsonInvalidException(e);
+            throw new JsonInvalidException(e);
         }
     }
 
     @Override
     public TasksResponse getTasksRecentlyFinished(Long userId) {
-        TasksResponse tasksResponse = new TasksResponse(new Pagination(1, 1), null);
-        List<String> results = redisTemplate.boundListOps(userId + "-recently-finished").range(0, -1);
-        tasksResponse.setSnapshots(transform(results));
-        return tasksResponse;
+        try (Jedis jedis = jedisPool.getResource()) {
+            TasksResponse tasksResponse = new TasksResponse(new Pagination(1, 1), null);
+            List<String> results = jedis.lrange(userId + "-recently-finished", 0, -1);
+            tasksResponse.setSnapshots(transform(results));
+            return tasksResponse;
+        }
     }
 
     private List<TaskSnapshot> transform(List<String> rawData) {

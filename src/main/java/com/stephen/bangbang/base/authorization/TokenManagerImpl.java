@@ -1,54 +1,66 @@
 package com.stephen.bangbang.base.authorization;
 
-import com.stephen.bangbang.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Component("tokenManager")
 public class TokenManagerImpl implements TokenManager {
-    private RedisTemplate<Long, String> redisTemplate;
+    private JedisPool jedisPool;
+
+    private static final String TOKEN_KEY_SUFFIX = "-token";
 
     @Autowired
-    public TokenManagerImpl(RedisTemplate<Long, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public TokenManagerImpl(JedisPool jedisPool) {
+        this.jedisPool = jedisPool;
+    }
+
+    private String getTokenKey(Long userId) {
+        return userId + TOKEN_KEY_SUFFIX;
     }
 
     @Override
     public TokenModel createToken(Long userId) {
-        final String token = userId + "-" + UUID.randomUUID().toString().replace("-", "");
-        redisTemplate.boundValueOps(userId).set(token, Constants.TOKEN_EXPIRES_DAYS, TimeUnit.DAYS);
-        return new TokenModel(userId, token);
+        try(Jedis jedis = jedisPool.getResource()) {
+            final String token = userId + "-" + UUID.randomUUID().toString().replace("-", "");
+            jedis.set(getTokenKey(userId), token);
+            jedis.expire(getTokenKey(userId), 7 * 24 * 60 * 60);
+            return new TokenModel(userId, token);
+        }
     }
 
     @Override
     public boolean checkToken(TokenModel tokenModel) {
-        if (tokenModel == null ||
-                tokenModel.getUserId() == null ||
-                tokenModel.getToken() == null) {
-            return false;
+        try (Jedis jedis = jedisPool.getResource()) {
+            if (tokenModel == null ||
+                    tokenModel.getUserId() == null ||
+                    tokenModel.getToken() == null) {
+                return false;
+            }
+            String token = jedis.get(getTokenKey(tokenModel.getUserId()));
+            if (token == null || !token.equals(tokenModel.getToken())) {
+                return false;
+            }
+            jedis.expire(getTokenKey(tokenModel.getUserId()), 7 * 24 * 60 * 60);
+            return true;
         }
-        String token = redisTemplate.boundValueOps(tokenModel.getUserId()).get();
-        if (token == null || !token.equals(tokenModel.getToken())) {
-            return false;
-        }
-        redisTemplate.boundValueOps(tokenModel.getUserId()).expire(Constants.TOKEN_EXPIRES_DAYS, TimeUnit.DAYS);
-        return true;
     }
 
     @Override
     public TokenModel getToken(Long userId) {
-        if (userId == null)
-            return null;
-        String token = redisTemplate.boundValueOps(userId).get();
+        try(Jedis jedis = jedisPool.getResource()) {
+            if (userId == null)
+                return null;
+            String token = jedis.get(getTokenKey(userId));
 
-        if (token == null)
-            return null;
+            if (token == null)
+                return null;
 
-        return new TokenModel(userId, token);
+            return new TokenModel(userId, token);
+        }
     }
 
     @Override
@@ -65,6 +77,8 @@ public class TokenManagerImpl implements TokenManager {
 
     @Override
     public void deleteToken(Long userId) {
-        redisTemplate.delete(userId);
+        try(Jedis jedis = jedisPool.getResource()) {
+            jedis.del(getTokenKey(userId));
+        }
     }
 }

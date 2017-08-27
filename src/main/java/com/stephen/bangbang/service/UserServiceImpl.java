@@ -10,12 +10,12 @@ import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.FriendsResponse;
 import com.stephen.bangbang.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 import java.util.Iterator;
 
 
@@ -23,24 +23,27 @@ import java.util.Iterator;
 public class UserServiceImpl implements UserService {
     private UserInfoRepository userDao;
     private TokenManager tokenManager;
-    private RedisTemplate<String, String> redisTemplate;
     private JPushService jPushService;
+    private JedisPool jedisPool;
 
     @Autowired
-    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager, RedisTemplate<String, String> redisTemplate, JPushService jPushService) {
+    public UserServiceImpl(UserInfoRepository userDao, TokenManager tokenManager, JedisPool jedisPool, JPushService jPushService) {
         this.jPushService = jPushService;
         this.userDao = userDao;
         this.tokenManager = tokenManager;
-        this.redisTemplate = redisTemplate;
+        this.jedisPool = jedisPool;
     }
 
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public User register(String username, String password) {
-        BoundValueOperations<String, String> ops = redisTemplate.boundValueOps("user-count");
-        ops.increment(1);
-        String count = ops.get();
-        return userDao.register(username, password, "User-" + count);
+        try (Jedis jedis = jedisPool.getResource()) {
+            Transaction tx = jedis.multi();
+            tx.incrBy("user-count", 1);
+            tx.get("user-count");
+            Long count = (Long) tx.exec().get(0);
+            return userDao.register(username, password, "User-" + count);
+        }
     }
 
     @Override
@@ -75,27 +78,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public User getUser(String username) {
-        User user = userDao.findUser(username);
-        if (user == null)
-            throw new UserNotFoundException();
-        return user;
+        return userDao.findUser(username);
     }
 
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public User getUser(Long userId) {
-        User user = userDao.findUser(userId);
-        if (user == null)
-            throw new UserNotFoundException();
-        return user;
+        return userDao.findUser(userId);
     }
 
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void update(Long userId, ObjectNode updatedNode) {
         User user = userDao.findUser(userId);
-        if (user == null)
-            throw new UserNotFoundException();
         try {
             user = merge(user, updatedNode);
             userDao.update(user);
@@ -123,20 +118,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void makeFriendOnMake(Long userId, Long targetUserId) {
-        jPushService.makeFriendOnMake(userId, targetUserId);
-        redisTemplate.boundSetOps("make-friends-requests").add(userId + "-" + targetUserId);
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.sadd("make-friends-requests", userId + "-" + targetUserId);
+            jPushService.makeFriendOnMake(userId, targetUserId);
+        }
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void makeFriendOnAgree(Long userId, Long targetUserId) {
-        if (!redisTemplate.boundSetOps("make-friends-requests").isMember(targetUserId + "-" + userId)) {
-            throw new NoMakingFriendsException();
-        }
+        try (Jedis jedis = jedisPool.getResource()) {
+            if (!jedis.sismember("make-friends-requests", targetUserId + "-" + userId)) {
+                throw new NoMakingFriendsException();
+            }
 
-        userDao.makeFriend(userId, targetUserId);
-        jPushService.makeFriendOnAgree(userId, targetUserId);
-        redisTemplate.boundSetOps("make-friends-requests").remove(targetUserId + "-" + userId);
+            userDao.makeFriend(userId, targetUserId);
+            jedis.srem("make-friends-requests", targetUserId + "-" + userId);
+            jPushService.makeFriendOnAgree(userId, targetUserId);
+        }
     }
 
     private User merge(User targetUser, ObjectNode node) throws JsonProcessingException {

@@ -15,16 +15,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.jndi.JndiTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import javax.naming.NamingException;
@@ -41,7 +38,7 @@ import java.util.Properties;
 @EnableTransactionManagement
 public class RootConfig {
 
-    @Bean
+    /*@Bean
     public JedisPoolConfig jedisPoolConfig() {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setBlockWhenExhausted(true);
@@ -51,9 +48,21 @@ public class RootConfig {
         config.setMaxWaitMillis(300 * 1000);
         config.setMinEvictableIdleTimeMillis(15 * 60 * 1000);
         return config;
-    }
+    }*/
 
     @Bean
+    public JedisPool jedisPool() {
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setBlockWhenExhausted(true);
+        config.setEvictionPolicyClassName("org.apache.commons.pool2.impl.DefaultEvictionPolicy");
+        config.setMaxTotal(32);
+        config.setMaxIdle(32);
+        config.setMaxWaitMillis(300 * 1000);
+        config.setMinEvictableIdleTimeMillis(15 * 60 * 1000);
+        return new JedisPool(config, "127.0.0.1", 6379, 20 * 1000);
+    }
+
+    /*@Bean
     public RedisConnectionFactory redisConnectionFactory(JedisPoolConfig poolConfig) {
         JedisConnectionFactory factory = new JedisConnectionFactory();
         factory.setPoolConfig(poolConfig);
@@ -67,14 +76,14 @@ public class RootConfig {
     public RedisTemplate redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate template = new RedisTemplate();
         template.setConnectionFactory(factory);
-        template.setEnableTransactionSupport(true);
+        //template.setEnableTransactionSupport(true);
         template.setValueSerializer(new GenericToStringSerializer<Object>(Object.class));
         return template;
-    }
+    }*/
 
     @Bean
     public JPushClient jPushClient() {
-        ClassPathResource classPathResource = new ClassPathResource("config/jpush.properties", this.getClass().getClassLoader());
+        ClassPathResource classPathResource = new ClassPathResource("jpush.properties", this.getClass().getClassLoader());
         Properties properties;
         try {
             properties = PropertiesLoaderUtils.loadProperties(classPathResource);
@@ -94,7 +103,7 @@ public class RootConfig {
     @Bean
     public EhCacheManagerFactoryBean ehcache() {
         EhCacheManagerFactoryBean ehcache = new EhCacheManagerFactoryBean();
-        ehcache.setConfigLocation(new ClassPathResource("config/ehcache.xml"));
+        ehcache.setConfigLocation(new ClassPathResource("ehcache.xml"));
         ehcache.setCacheManagerName("spring-cache");
         return ehcache;
     }
@@ -138,7 +147,10 @@ public class RootConfig {
     @Bean
     @Profile("dev")
     public DataSource h2DataSource() {
-        return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2).setName("bangbang").build();
+        return new EmbeddedDatabaseBuilder().
+                setType(EmbeddedDatabaseType.H2).
+                setName("bangbang").
+                build();
     }
 
     @Bean
@@ -155,7 +167,7 @@ public class RootConfig {
         properties.put("hibernate.cache.use_second_level_cache", "true");
         properties.put("hibernate.cache.use_query_cache", "true");
         properties.put("hibernate.cache.region.factory_class", EhCacheRegionFactory.class.getName());
-        properties.put("net.sf.ehcache.configurationResourceName", "classpath:config/ehcache.xml");
+        properties.put("net.sf.ehcache.configurationResourceName", "ehcache.xml");
         properties.put("hibernate.cache.use_structured_entries", "false");
         properties.put("hibernate.generate_statistics", "true");
         sfb.setHibernateProperties(properties);

@@ -13,34 +13,39 @@ import cn.jpush.api.push.model.notification.Notification;
 import com.stephen.bangbang.Constants;
 import com.stephen.bangbang.exception.JPushException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 @Service
 public class JPushServiceImpl implements JPushService {
-    private RedisTemplate<String, String> redisTemplate;
+    private JedisPool jedisPool;
     private JPushClient client;
 
+    private static final String REGISTRATION_SUFFIX = "-registrationId";
+
+    private String getRegistrationKey(Long userId) {
+        return userId + REGISTRATION_SUFFIX;
+    }
+
     @Autowired
-    public JPushServiceImpl(RedisTemplate<String, String> redisTemplate, JPushClient client) {
-        this.redisTemplate = redisTemplate;
+    public JPushServiceImpl(JedisPool jedisPool, JPushClient client) {
+        this.jedisPool = jedisPool;
         this.client = client;
     }
 
     @Override
     public void allopatricLogin(Long userId, String registrationId) {
-        BoundValueOperations<String, String> ops = redisTemplate.boundValueOps(userId + "-registrationId");
-        String formerRegistrationId = ops.get();
-        if (formerRegistrationId == null || formerRegistrationId.equals("")) {
-            ops.set(registrationId);
-        } else if (!formerRegistrationId.equals(registrationId)) {
-            PushPayload pushPayload = getAllopatricLoginPayload(formerRegistrationId);
-            try {
-                client.sendPush(pushPayload);
-                ops.set(registrationId);
-            } catch (APIConnectionException | APIRequestException e) {
-                throw new JPushException(e);
+        try(Jedis jedis = jedisPool.getResource()) {
+            String formerRegistrationId = jedis.get(getRegistrationKey(userId));
+            jedis.set(getRegistrationKey(userId), registrationId);
+            if (formerRegistrationId != null && !formerRegistrationId.equals(registrationId)) {
+                PushPayload pushPayload = getAllopatricLoginPayload(formerRegistrationId);
+                try {
+                    client.sendPush(pushPayload);
+                } catch (APIConnectionException | APIRequestException e) {
+                    throw new JPushException(e);
+                }
             }
         }
     }
@@ -59,12 +64,14 @@ public class JPushServiceImpl implements JPushService {
 
     @Override
     public void updatePassword(Long userId) {
-        String registrationId = getRegistrationId(userId);
-        if (registrationId != null && !registrationId.equals("")) {
-            try {
-                client.sendPush(passwordChangedPushPayload(registrationId));
-            } catch (APIConnectionException | APIRequestException e) {
-                throw new JPushException(e);
+        try (Jedis jedis = jedisPool.getResource()) {
+            String registrationId = jedis.get(getRegistrationKey(userId));
+            if (registrationId != null && !registrationId.equals("")) {
+                try {
+                    client.sendPush(passwordChangedPushPayload(registrationId));
+                } catch (APIConnectionException | APIRequestException e) {
+                    throw new JPushException(e);
+                }
             }
         }
     }
@@ -81,12 +88,7 @@ public class JPushServiceImpl implements JPushService {
                 .build();
     }
 
-    private String getRegistrationId(Long userId) {
-        return redisTemplate.boundValueOps(userId + "-registrationId").get();
-    }
-
-    private PushPayload makeFriendPushPayload(Long userId, Long targetUserId) {
-        String registrationId = getRegistrationId(targetUserId);
+    private PushPayload makeFriendPushPayload(Long userId, Long targetUserId, String registrationId) {
         if (registrationId != null && !registrationId.equals(""))
             return PushPayload.newBuilder()
                 .setPlatform(Platform.all())
@@ -111,8 +113,7 @@ public class JPushServiceImpl implements JPushService {
         return null;
     }
 
-    private PushPayload agreeOnFriendsRequestPushPayload(Long userId, Long targetUserId) {
-        String registrationId = getRegistrationId(targetUserId);
+    private PushPayload agreeOnFriendsRequestPushPayload(Long userId, Long targetUserId, String registrationId) {
         if (registrationId != null)
             return PushPayload.newBuilder()
                     .setPlatform(Platform.all())
@@ -139,8 +140,8 @@ public class JPushServiceImpl implements JPushService {
 
     @Override
     public void makeFriendOnMake(Long userId, Long targetUserId) {
-        try {
-            client.sendPush(makeFriendPushPayload(userId, targetUserId));
+        try (Jedis jedis = jedisPool.getResource()) {
+            client.sendPush(makeFriendPushPayload(userId, targetUserId, jedis.get(getRegistrationKey(targetUserId))));
         } catch (APIConnectionException | APIRequestException e) {
             throw new JPushException(e);
         }
@@ -148,8 +149,8 @@ public class JPushServiceImpl implements JPushService {
 
     @Override
     public void makeFriendOnAgree(Long userId, Long targetUserId) {
-        try {
-            client.sendPush(agreeOnFriendsRequestPushPayload(userId, targetUserId));
+        try (Jedis jedis = jedisPool.getResource()) {
+            client.sendPush(agreeOnFriendsRequestPushPayload(userId, targetUserId, jedis.get(getRegistrationKey(targetUserId))));
         } catch (APIConnectionException | APIRequestException e) {
             throw new JPushException(e);
         }

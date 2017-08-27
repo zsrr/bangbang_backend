@@ -6,6 +6,8 @@ import com.stephen.bangbang.dto.SingleFriendInfo;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -53,6 +55,7 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
     @Override
     public void update(User updatedUser) {
         Session session = getCurrentSession();
+        session.detach(findUser(updatedUser.getId()));
         session.update(updatedUser);
     }
 
@@ -87,13 +90,13 @@ public class UserInfoRepositoryImpl extends BaseRepositoryImpl implements UserIn
         Iterator<User> iterator = user.getFriends().iterator();
         while (iterator.hasNext()) {
             User friend = iterator.next();
-            SingleFriendInfo info = new SingleFriendInfo(friend);
-            infos.add(info);
+            infos.add(new SingleFriendInfo(friend));
         }
         return new FriendsResponse(infos);
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void makeFriend(Long userId, Long targetUserId) {
         Session session = getCurrentSession();
         User user = session.get(User.class, userId);

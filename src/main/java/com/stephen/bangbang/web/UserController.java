@@ -9,8 +9,6 @@ import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.*;
 import com.stephen.bangbang.exception.ActionResolveException;
 import com.stephen.bangbang.exception.TaskInfoInvalidException;
-import com.stephen.bangbang.exception.NotCurrentUserException;
-import com.stephen.bangbang.exception.UserInfoInvalidException;
 import com.stephen.bangbang.service.TaskService;
 import com.stephen.bangbang.service.TaskValidationService;
 import com.stephen.bangbang.service.UserValidationService;
@@ -22,7 +20,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.*;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -68,6 +65,7 @@ public class UserController {
     @RequestMapping(value = "/{userId}/baseInfo", method = RequestMethod.GET)
     @Authorization
     public ResponseEntity<User> getUserInfo(@PathVariable(value = "userId") Long userId) {
+        userValidationService.invalidUser(userId);
         User user = userService.getUser(userId);
         return new ResponseEntity<User>(user, HttpStatus.OK);
     }

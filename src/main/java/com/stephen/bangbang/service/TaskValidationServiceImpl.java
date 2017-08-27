@@ -18,6 +18,10 @@ public class TaskValidationServiceImpl implements TaskValidationService {
 
     @Override
     public void invalidTask(Long taskId) {
+        if (taskId.equals(0L)) {
+            return;
+        }
+
         if (!taskDAO.hasTask(taskId)) {
             throw new TaskNotFoundException();
         }
