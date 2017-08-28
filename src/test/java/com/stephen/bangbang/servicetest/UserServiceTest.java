@@ -7,7 +7,6 @@ import com.stephen.bangbang.base.authorization.TokenModel;
 import com.stephen.bangbang.config.RootConfig;
 import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.FriendsResponse;
-import com.stephen.bangbang.exception.JPushException;
 import com.stephen.bangbang.service.UserService;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -63,11 +62,7 @@ public class UserServiceTest {
     }
 
     private void login(User user, String registrationId) {
-        try {
-            userService.login(user.getId(), user.getPassword(), registrationId);
-        } catch (JPushException e) {
-            e.printStackTrace();
-        }
+        userService.login(user.getId(), user.getPassword(), registrationId);
     }
 
     @Test
@@ -114,22 +109,13 @@ public class UserServiceTest {
 
     @Test
     public void test003MakeFriend() {
-        try {
-            userService.makeFriendOnMake(registeredUser01.getId(), registeredUser02.getId());
-        } catch (JPushException e) {
-            e.printStackTrace();
-        }
-
+        userService.makeFriendOnMake(registeredUser01.getId(), registeredUser02.getId());
         Assert.assertTrue(jedis.sismember("make-friends-requests", registeredUser01.getId() + "-" + registeredUser02.getId()));
     }
 
     @Test
     public void test004MakeFriendAgree() {
-        try {
-            userService.makeFriendOnAgree(registeredUser02.getId(), registeredUser01.getId());
-        } catch (JPushException e) {
-            e.printStackTrace();
-        }
+        userService.makeFriendOnAgree(registeredUser02.getId(), registeredUser01.getId());
 
         Assert.assertFalse(jedis.sismember("make-friends-requests", registeredUser01.getId() + "-" + registeredUser02.getId()));
 
@@ -146,9 +132,24 @@ public class UserServiceTest {
         Assert.assertEquals(r2.getFriendsInfo().get(0).getUsername(), "StephenZhang");
     }
 
-    @Test(expected = JPushException.class)
+    @Test
     public void test005AllopatricLogin() {
+        TokenModel former = tokenManager.getToken(registeredUser01.getId());
         userService.login(registeredUser01.getId(), registeredUser01.getPassword(), REGISTRATION_ID_1 + "_");
+        TokenModel latter = tokenManager.getToken(registeredUser01.getId());
+        Assert.assertNotEquals(former.getToken(), latter.getToken());
+    }
+
+    @Test
+    public void test006UpdatePassword() {
+        String updateStr = "{\"password\": \"12345678\"}";
+        try {
+            userService.update(registeredUser01.getId(), new ObjectMapper().readValue(updateStr, ObjectNode.class));
+            TokenModel tokenModel = tokenManager.getToken(registeredUser01.getId());
+            Assert.assertNull(tokenModel);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

@@ -66,8 +66,8 @@ public class UserServiceImpl implements UserService {
         if (!user.getPassword().equals(password)) {
             throw new PasswordIncorrectException();
         }
-        tokenManager.createToken(user.getId());
         jPushService.allopatricLogin(user.getId(), registrationId);
+        tokenManager.createToken(user.getId());
     }
 
     @Override
@@ -94,10 +94,10 @@ public class UserServiceImpl implements UserService {
         try {
             user = merge(user, updatedNode);
             userDao.update(user);
-            // 更改密码操作
+            // 更改密码操作，发送消息失败则无法更改
             if (updatedNode.get("password") != null) {
-                tokenManager.deleteToken(userId);
                 jPushService.updatePassword(userId);
+                tokenManager.deleteToken(userId);
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -119,8 +119,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void makeFriendOnMake(Long userId, Long targetUserId) {
         try (Jedis jedis = jedisPool.getResource()) {
-            jedis.sadd("make-friends-requests", userId + "-" + targetUserId);
             jPushService.makeFriendOnMake(userId, targetUserId);
+            jedis.sadd("make-friends-requests", userId + "-" + targetUserId);
         }
     }
 

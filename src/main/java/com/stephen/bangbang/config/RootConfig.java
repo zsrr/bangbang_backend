@@ -3,6 +3,9 @@ package com.stephen.bangbang.config;
 import cn.jiguang.common.ClientConfig;
 import cn.jpush.api.JPushClient;
 import com.stephen.bangbang.Constants;
+import com.stephen.bangbang.service.JPushService;
+import com.stephen.bangbang.service.JPushServiceImpl;
+import com.stephen.bangbang.service.JPushServiceVirtualImpl;
 import net.sf.ehcache.CacheManager;
 import org.hibernate.SessionFactory;
 import org.hibernate.cache.ehcache.EhCacheRegionFactory;
@@ -184,6 +187,18 @@ public class RootConfig {
     @Profile("dev")
     public HibernatePropertiesConfig testDialect() {
         return new HibernatePropertiesConfig("org.hibernate.dialect.H2Dialect", "create");
+    }
+
+    @Bean
+    @Profile("production")
+    public JPushService proJPushService(JedisPool jedisPool, JPushClient jPushClient) {
+        return new JPushServiceImpl(jedisPool, jPushClient);
+    }
+
+    @Bean
+    @Profile("dev")
+    public JPushService devJPushService(JedisPool jedisPool) {
+        return new JPushServiceVirtualImpl(jedisPool);
     }
 
     @Bean

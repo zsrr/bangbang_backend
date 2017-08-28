@@ -61,30 +61,11 @@ public class TaskServiceTest {
             zxq = userService.register("StephanieZhang", "1234567");
             lgd = userService.register("SabarDaLee", "1234567");
 
-            try {
-                userService.login(zsr.getId(), zsr.getPassword(), zsr.getNickname());
-            } catch (JPushException ignore) {
-            }
-
-            try {
-                userService.login(zxq.getId(), zxq.getPassword(), zxq.getNickname());
-            } catch (JPushException ignore) {
-            }
-
-            try {
-                userService.login(lgd.getId(), lgd.getPassword(), lgd.getNickname());
-            } catch (JPushException ignore) {
-            }
-
-            try {
-                userService.makeFriendOnMake(zsr.getId(), zxq.getId());
-            } catch (JPushException ignore) {
-            }
-
-            try {
-                userService.makeFriendOnAgree(zxq.getId(), zsr.getId());
-            } catch (JPushException ignore) {
-            }
+            userService.login(zsr.getId(), zsr.getPassword(), zsr.getNickname());
+            userService.login(zxq.getId(), zxq.getPassword(), zxq.getNickname());
+            userService.login(lgd.getId(), lgd.getPassword(), lgd.getNickname());
+            userService.makeFriendOnMake(zsr.getId(), zxq.getId());
+            userService.makeFriendOnAgree(zxq.getId(), zsr.getId());
         }
     }
 

@@ -12,12 +12,9 @@ import cn.jpush.api.push.model.notification.IosNotification;
 import cn.jpush.api.push.model.notification.Notification;
 import com.stephen.bangbang.Constants;
 import com.stephen.bangbang.exception.JPushException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-@Service
 public class JPushServiceImpl implements JPushService {
     private JedisPool jedisPool;
     private JPushClient client;
@@ -28,25 +25,28 @@ public class JPushServiceImpl implements JPushService {
         return userId + REGISTRATION_SUFFIX;
     }
 
-    @Autowired
     public JPushServiceImpl(JedisPool jedisPool, JPushClient client) {
         this.jedisPool = jedisPool;
         this.client = client;
     }
 
     @Override
-    public void allopatricLogin(Long userId, String registrationId) {
+    public boolean allopatricLogin(Long userId, String registrationId) {
         try(Jedis jedis = jedisPool.getResource()) {
             String formerRegistrationId = jedis.get(getRegistrationKey(userId));
-            jedis.set(getRegistrationKey(userId), registrationId);
             if (formerRegistrationId != null && !formerRegistrationId.equals(registrationId)) {
                 PushPayload pushPayload = getAllopatricLoginPayload(formerRegistrationId);
                 try {
                     client.sendPush(pushPayload);
                 } catch (APIConnectionException | APIRequestException e) {
+                    // 此时应该抛出异常，保证用户不被挤出
                     throw new JPushException(e);
                 }
+                jedis.set(getRegistrationKey(userId), registrationId);
+                return true;
             }
+            jedis.set(getRegistrationKey(userId), registrationId);
+            return false;
         }
     }
 
@@ -151,8 +151,7 @@ public class JPushServiceImpl implements JPushService {
     public void makeFriendOnAgree(Long userId, Long targetUserId) {
         try (Jedis jedis = jedisPool.getResource()) {
             client.sendPush(agreeOnFriendsRequestPushPayload(userId, targetUserId, jedis.get(getRegistrationKey(targetUserId))));
-        } catch (APIConnectionException | APIRequestException e) {
-            throw new JPushException(e);
+        } catch (APIConnectionException | APIRequestException ignore) {
         }
     }
 }
