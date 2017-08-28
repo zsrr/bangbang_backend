@@ -43,6 +43,9 @@ public class TaskSnapshot implements Serializable {
 
     String note;
 
+    public TaskSnapshot() {
+    }
+
     public TaskSnapshot(HelpingTask ht) {
         taskId = ht.getId();
         userId = ht.getUser().getId();

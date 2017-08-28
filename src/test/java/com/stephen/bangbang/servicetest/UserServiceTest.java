@@ -146,4 +146,9 @@ public class UserServiceTest {
         Assert.assertEquals(r2.getFriendsInfo().get(0).getUsername(), "StephenZhang");
     }
 
+    @Test(expected = JPushException.class)
+    public void test005AllopatricLogin() {
+        userService.login(registeredUser01.getId(), registeredUser01.getPassword(), REGISTRATION_ID_1 + "_");
+    }
+
 }
