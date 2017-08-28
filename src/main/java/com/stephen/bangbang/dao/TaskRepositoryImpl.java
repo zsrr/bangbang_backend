@@ -5,16 +5,13 @@ import com.stephen.bangbang.domain.User;
 import com.stephen.bangbang.dto.Pagination;
 import com.stephen.bangbang.dto.TaskSnapshot;
 import com.stephen.bangbang.dto.TasksResponse;
-import org.hibernate.Hibernate;
+import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import java.util.List;
 
@@ -167,10 +164,10 @@ public class TaskRepositoryImpl extends BaseRepositoryImpl implements TaskReposi
     @Override
     public boolean hasTask(Long taskId) {
         Session session = getCurrentSession();
+        Query<Long> query = session.createQuery("select h.id from HelpingTask h where h.id = :id").setParameter("id", taskId);
         try {
-            HelpingTask reference = session.getReference(HelpingTask.class, taskId);
-            return reference != null;
-        } catch (EntityNotFoundException e) {
+            return query.getSingleResult() != null;
+        } catch (NoResultException e) {
             return false;
         }
     }

@@ -35,7 +35,6 @@ public class User implements Serializable {
     }
 
     protected User() {
-
     }
 
     public User(String username, String password) {
