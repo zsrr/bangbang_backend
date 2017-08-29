@@ -51,8 +51,9 @@ public class User implements Serializable {
     @Size(min = 5, max = 16)
     protected String username;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 32)
     @NotNull
+    @Size(min = 32, max = 32)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     protected String password;
 

@@ -51,9 +51,6 @@ public class UserValidationServiceImpl implements UserValidationService {
 
     @Override
     public void registerValidation(User user) {
-        if (userDAO.hasUser(user.getUsername())) {
-            throw new DuplicatedUserException();
-        }
 
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         Validator validator = validatorFactory.getValidator();
@@ -64,6 +61,10 @@ public class UserValidationServiceImpl implements UserValidationService {
         if (!usernameViolations.isEmpty() ||
                 !passwordViolations.isEmpty()) {
             throw new UserInfoInvalidException();
+        }
+
+        if (userDAO.hasUser(user.getUsername())) {
+            throw new DuplicatedUserException();
         }
     }
 
