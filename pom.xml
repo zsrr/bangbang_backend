@@ -18,9 +18,38 @@
         <finalName>bangbangbackend</finalName>
         <outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
         <testOutputDirectory>src/main/webapp/WEB-INF/classes</testOutputDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <server>tomcat7</server>
+                    <path>/bangbang</path>
+                    <url>http://47.94.245.43:8080/manager/text</url>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>cn.jpush.api</groupId>
+            <artifactId>jpush-client</artifactId>
+            <version>3.3.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/jpush-client-3.3.0.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.jpush.api</groupId>
+            <artifactId>jiguang-common</artifactId>
+            <version>1.0.8</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/webapp/WEB-INF/lib/jiguang-common-1.0.7.jar</systemPath>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
