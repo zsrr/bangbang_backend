@@ -12,11 +12,11 @@ public class JsonInvalidException extends BaseRuntimeException {
     @Override
     public BaseResponse getBaseResponse() {
         ErrorDetail ed = new ErrorDetail("Json string is invalid", JsonInvalidException.class, getCause().getMessage());
-        return new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
+        return new BaseResponse(HttpStatus.BAD_REQUEST, ed);
     }
 
     @Override
     public HttpStatus getHttpStatus() {
-        return HttpStatus.NOT_ACCEPTABLE;
+        return HttpStatus.BAD_REQUEST;
     }
 }

@@ -8,11 +8,11 @@ public class NoMakingFriendsException extends BaseRuntimeException {
     @Override
     public BaseResponse getBaseResponse() {
         ErrorDetail ed = new ErrorDetail("Friend making request is not found", this.getClass(), "未能找到相应的好友请求");
-        return new BaseResponse(HttpStatus.BAD_REQUEST, ed);
+        return new BaseResponse(HttpStatus.NOT_FOUND, ed);
     }
 
     @Override
     public HttpStatus getHttpStatus() {
-        return HttpStatus.BAD_REQUEST;
+        return HttpStatus.NOT_FOUND;
     }
 }

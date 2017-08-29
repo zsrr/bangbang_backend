@@ -93,8 +93,7 @@ public class TaskServiceImpl implements TaskService {
             }
 
             jedis.rpush(key, new ObjectMapper().writeValueAsString(snapshot));
-        } catch (JsonProcessingException e) {
-            throw new JsonInvalidException(e);
+        } catch (JsonProcessingException ignore) {
         }
     }
 

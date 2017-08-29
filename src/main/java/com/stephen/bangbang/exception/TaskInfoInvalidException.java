@@ -9,11 +9,11 @@ public class TaskInfoInvalidException extends BaseRuntimeException {
     @Override
     public BaseResponse getBaseResponse() {
         ErrorDetail ed = new ErrorDetail("Task invalid", TaskInfoInvalidException.class, "任务信息不符合规范");
-        return new BaseResponse(HttpStatus.NOT_ACCEPTABLE, ed);
+        return new BaseResponse(HttpStatus.BAD_REQUEST, ed);
     }
 
     @Override
     public HttpStatus getHttpStatus() {
-        return HttpStatus.NOT_ACCEPTABLE;
+        return HttpStatus.BAD_REQUEST;
     }
 }
