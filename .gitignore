@@ -3,3 +3,5 @@
 BangBangBackend.iml
 transaction.log
 /src/main/resources/jpush.properties
+/src/main/webapp/META-INF/context.xml
+/src/main/webapp/WEB-INF/classes

@@ -140,7 +140,7 @@ public class RootConfig {
         DataSource dataSource;
         JndiTemplate jndi = new JndiTemplate();
         try {
-            dataSource = jndi.lookup("java:comp/env/jdbc/bangbang_mysql", DataSource.class);
+            dataSource = jndi.lookup("java:comp/env/jdbc/bangbang", DataSource.class);
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }

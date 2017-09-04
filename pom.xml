@@ -47,6 +47,7 @@
                     <server>tomcat7</server>
                     <path>/bangbang</path>
                     <url>${durl}</url>
+                    <contextReloadable>true</contextReloadable>
                 </configuration>
             </plugin>
         </plugins>
