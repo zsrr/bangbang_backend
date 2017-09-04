@@ -1,5 +1,6 @@
 package com.stephen.bangbang.exception;
 
+import com.stephen.bangbang.base.utils.ExceptionUtils;
 import com.stephen.bangbang.dto.BaseResponse;
 import com.stephen.bangbang.dto.ErrorDetail;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse> allException(Exception e) {
         ErrorDetail ed = new ErrorDetail("Exception happened", e.getClass(), e.getMessage());
-        BaseResponse br = new BaseResponse(HttpStatus.BAD_REQUEST, ed);
-        return new ResponseEntity<BaseResponse>(br, HttpStatus.BAD_REQUEST);
+        int statusCode = ExceptionUtils.getStatusCode(e.getClass());
+        HttpStatus hs = HttpStatus.valueOf(statusCode);
+        BaseResponse br = new BaseResponse(hs, ed);
+        return new ResponseEntity<BaseResponse>(br, hs);
     }
 }
