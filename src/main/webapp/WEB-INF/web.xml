@@ -9,7 +9,7 @@
 
     <context-param>
         <param-name>spring.profiles.default</param-name>
-        <param-value>dev</param-value>
+        <param-value>production</param-value>
     </context-param>
 
     <context-param>
@@ -44,4 +44,14 @@
         <servlet-name>bangbangServlet</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>SSL</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
 </web-app>
