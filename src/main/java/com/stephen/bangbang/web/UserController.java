@@ -38,17 +38,17 @@ public class UserController {
         this.taskValidationService = taskValidationService;
     }
 
-    @RequestMapping(value = "", method = RequestMethod.POST)
-    public ResponseEntity<UserRegisterResponse> register(@RequestBody User postUser) {
-        userValidationService.registerValidation(postUser);
-        User user = userService.register(postUser.getUsername(), postUser.getPassword());
+    @RequestMapping(value = "", method = RequestMethod.POST, consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<UserRegisterResponse> register(@RequestParam("username") String username, @RequestParam("password") String password) {
+        userValidationService.registerValidation(new User(username, password));
+        User user = userService.register(username, password);
         UserRegisterResponse userRegisterResponse = new UserRegisterResponse(user.getId());
         userRegisterResponse.setStatus(HttpStatus.CREATED.value());
         return new ResponseEntity<UserRegisterResponse>(userRegisterResponse, HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/{userIdentifier}", method = RequestMethod.GET)
-    public ResponseEntity<UserLoginResponse> login(@PathVariable(value = "userIdentifier") String identifier, @RequestHeader("password") String password, @RequestHeader("registrationId") String registrationId) {
+    public ResponseEntity<UserLoginResponse> login(@PathVariable(value = "userIdentifier") String identifier, @RequestHeader("Authorization") String password, @RequestHeader("Registration-Id") String registrationId) {
         User user;
         try {
             Long id = Long.parseLong(identifier);
